@@ -1,6 +1,6 @@
 <?php
 /**
- * NetworkAnalyzer
+ * ZF2-CommonLibrary
  *
  * @link      https://github.com/brian978/NetworkAnalyzer
  * @copyright Copyright (c) 2013
@@ -13,8 +13,9 @@ use Zend\Form\Factory as ZendFormFactory;
 use Zend\Form\FormElementManager;
 use Zend\I18n\Translator\TranslatorAwareInterface;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
+use Zend\ServiceManager\ServiceLocatorInterface;
 
-class Factory extends ZendFormFactory
+class DependencyAwareFormFactory extends ZendFormFactory
 {
     /**
      * @var ServiceLocatorInterface
@@ -40,10 +41,15 @@ class Factory extends ZendFormFactory
      *
      * @param  array|Traversable $spec
      *
-     * @return ElementInterface
+     * @throws \RuntimeException
+     * @return \Zend\Form\ElementInterface
      */
     public function create($spec)
     {
+        if($this->serviceLocator instanceof ServiceLocatorInterface === false) {
+            throw new \RuntimeException('Cannot create form because I don\'t have a service locator');
+        }
+
         $form = parent::create($spec);
 
         if ($form instanceof TranslatorAwareInterface) {

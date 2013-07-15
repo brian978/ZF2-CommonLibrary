@@ -1,6 +1,6 @@
 <?php
 /**
- * NetworkAnalyzer
+ * ZF2-CommonLibrary
  *
  * @link      https://github.com/brian978/NetworkAnalyzer
  * @copyright Copyright (c) 2013

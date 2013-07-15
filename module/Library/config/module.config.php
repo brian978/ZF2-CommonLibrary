@@ -1,6 +1,6 @@
 <?php
 /**
- * NetworkAnalyzer
+ * ZF2-CommonLibrary
  *
  * @link      https://github.com/brian978/NetworkAnalyzer
  * @copyright Copyright (c) 2013
@@ -15,4 +15,13 @@ return array(
             'mediaSource' => 'Library\View\Helpers\MediaSource',
         )
     ),
+
+    'service_manager' => array(
+        'factories' => array(
+            'DependencyAwareForm' => '\Library\Service\DependencyAwareForm',
+        ),
+        'aliases' => array(
+            'translator' => 'MvcTranslator',
+        )
+    )
 );

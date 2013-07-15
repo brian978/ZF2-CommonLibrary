@@ -1,6 +1,6 @@
 <?php
 /**
- * NetworkAnalyzer
+ * ZF2-CommonLibrary
  *
  * @link      https://github.com/brian978/NetworkAnalyzer
  * @copyright Copyright (c) 2013
@@ -10,9 +10,10 @@
 namespace Library;
 
 use Library\Form\Factory;
-use Zend\Form\FormElementManager;
+use Zend\ModuleManager\Feature\AutoloaderProviderInterface;
+use Zend\ModuleManager\Feature\ConfigProviderInterface;
 
-class Module
+class Module implements ConfigProviderInterface, AutoloaderProviderInterface
 {
     /**
      * @var string
@@ -23,20 +24,6 @@ class Module
      * @var string
      */
     protected $moduleNamespace = __NAMESPACE__;
-
-    public function getServiceConfig()
-    {
-        return array(
-            'factories' => array(
-                'TranslatableFormFactory' => function ($serviceManager) {
-                    $formElementManager = new FormElementManager();
-                    $formElementManager->setServiceLocator($serviceManager);
-
-                    return new Factory($formElementManager);
-                }
-            )
-        );
-    }
 
     public function getConfig()
     {
