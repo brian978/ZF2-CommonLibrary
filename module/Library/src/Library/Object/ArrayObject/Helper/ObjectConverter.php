@@ -11,6 +11,14 @@ namespace Library\Object\ArrayObject\Helper;
 
 use Zend\Stdlib\Hydrator\ClassMethods;
 
+/**
+ * Class ObjectConverter
+ *
+ * It is used to convert the rows from the database to a format
+ * that can be hydrated
+ *
+ * @package Library\Object\ArrayObject\Helper
+ */
 class ObjectConverter
 {
     /**

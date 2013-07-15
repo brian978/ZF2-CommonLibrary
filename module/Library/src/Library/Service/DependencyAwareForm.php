@@ -15,7 +15,6 @@ use Zend\ServiceManager\ServiceLocatorInterface;
 
 class DependencyAwareForm implements FactoryInterface
 {
-
     /**
      * Create service
      *

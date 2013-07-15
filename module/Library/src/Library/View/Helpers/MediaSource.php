@@ -22,8 +22,16 @@ class MediaSource extends AbstractHelper
         /** @var $view \Zend\View\Renderer\PhpRenderer */
         $view = $this->getView();
 
+        /** @var $pluginManager \Zend\View\HelperPluginManager */
+        $pluginManager = $view->getHelperPluginManager();
+
+        /** @var $serviceLocator \Zend\ServiceManager\ServiceLocatorInterface */
+        $serviceLocator = $pluginManager->getServiceLocator();
+
+        $config = $serviceLocator->get('Config');
+
         /** @var $basePath \Zend\View\Helper\BasePath */
-        $basePath = $view->getHelperPluginManager()->get('BasePath');
+        $basePath = $pluginManager->get('BasePath');
         $url      = $basePath() . '/';
 
         switch ($mediaType) {
