@@ -18,9 +18,7 @@ use Zend\ServiceManager\ServiceLocatorAwareInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 use Zend\Stdlib\Hydrator\ClassMethods;
 
-abstract class AbstractForm extends Form implements
-    TranslatorAwareInterface,
-    ServiceLocatorAwareInterface
+abstract class AbstractForm extends Form implements TranslatorAwareInterface, ServiceLocatorAwareInterface
 {
     const MODE_ADD  = 1;
     const MODE_EDIT = 2;
@@ -66,7 +64,7 @@ abstract class AbstractForm extends Form implements
      */
     protected function getBaseFieldsetObject()
     {
-        if(class_exists($this->baseFieldsetClass)) {
+        if (class_exists($this->baseFieldsetClass)) {
             return $this->setupBaseFieldsetObject(new $this->baseFieldsetClass());
         }
 

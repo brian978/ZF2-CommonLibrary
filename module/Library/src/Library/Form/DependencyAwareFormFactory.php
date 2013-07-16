@@ -46,7 +46,7 @@ class DependencyAwareFormFactory extends ZendFormFactory
      */
     public function create($spec)
     {
-        if($this->serviceLocator instanceof ServiceLocatorInterface === false) {
+        if ($this->serviceLocator instanceof ServiceLocatorInterface === false) {
             throw new \RuntimeException('Cannot create form because I don\'t have a service locator');
         }
 

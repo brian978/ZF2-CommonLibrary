@@ -11,6 +11,7 @@ return array(
         'config' => array(
             'images_path' => 'images/', // Notice the trailing slash
             'css_path' => 'css/',
+            'js_path' => 'js/',
         )
     )
 );

@@ -80,6 +80,12 @@ class MediaSource extends AbstractHelper
                     $url .= $config['view_helpers']['config']['css_path'];
                 }
                 break;
+
+            case 'js':
+                if (isset($config['view_helpers']['config']['js_path'])) {
+                    $url .= $config['view_helpers']['config']['js_path'];
+                }
+                break;
         }
 
         $url .= $mediaName;
