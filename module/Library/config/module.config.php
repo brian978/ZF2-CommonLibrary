@@ -13,7 +13,7 @@ return array(
             'routeName' => 'Library\View\Helpers\RouteName',
             'showInputError' => 'Library\View\Helpers\RenderInputError',
             'mediaSource' => 'Library\View\Helpers\MediaSource',
-        )
+        ),
     ),
 
     'service_manager' => array(
@@ -23,5 +23,5 @@ return array(
         'aliases' => array(
             'translator' => 'MvcTranslator',
         )
-    )
+    ),
 );

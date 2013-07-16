@@ -6,4 +6,11 @@
  * @copyright Copyright (c) 2013
  * @license   Creative Commons Attribution-ShareAlike 3.0
  */
-return array();
+return array(
+    'view_helpers' => array(
+        'config' => array(
+            'images_path' => 'images/', // Notice the trailing slash
+            'css_path' => 'css/',
+        )
+    )
+);

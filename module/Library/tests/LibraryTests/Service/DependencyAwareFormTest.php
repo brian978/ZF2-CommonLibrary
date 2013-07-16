@@ -9,24 +9,10 @@
 
 namespace LibraryTests\Service;
 
-use PHPUnit_Framework_TestCase;
-use TestHelpers\ApplicationConfig;
-use Zend\Mvc\Service\ServiceManagerConfig;
-use Zend\ServiceManager\ServiceManager;
+use TestHelpers\AbstractTest;
 
-class DependencyAwareFormTest extends PHPUnit_Framework_TestCase
+class DependencyAwareFormTest extends AbstractTest
 {
-    protected $serviceManager;
-
-    public function __construct($name = null, array $data = array(), $dataName = '')
-    {
-        parent::__construct($name, $data, $dataName);
-
-        $this->serviceManager = new ServiceManager(new ServiceManagerConfig());
-        $this->serviceManager->setService('ApplicationConfig', ApplicationConfig::getConfig());
-        $this->serviceManager->get('ModuleManager')->loadModules();
-    }
-
     public function testCanCreateDependencyAwareFormFactory()
     {
         /** @var $service \Library\Form\DependencyAwareFormFactory */
