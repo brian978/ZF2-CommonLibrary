@@ -83,10 +83,10 @@ class AbstractDbHelperModel extends AbstractTableGateway
     /**
      * Used to generate a where condition
      *
-     * @param string     $field
+     * @param string $field
      * @param string|int $value
-     * @param string     $table
-     * @param string     $sign
+     * @param string $table
+     * @param string $sign
      * @return string
      */
     public function getWhere($field, $value, $table = null, $sign = '=')
@@ -113,9 +113,9 @@ class AbstractDbHelperModel extends AbstractTableGateway
     /**
      * Used to add a where condition
      *
-     * @param string|array    $field
+     * @param string|array $field
      * @param string|int|bool $value When this is set to true the $field param in an array
-     * @param string          $table
+     * @param string $table
      *
      * @return $this
      */
@@ -138,7 +138,7 @@ class AbstractDbHelperModel extends AbstractTableGateway
     }
 
     /**
-     * Used to add a where condition
+     * Used to add a join condition
      *
      * @param        $name
      * @param        $condition
@@ -147,12 +147,8 @@ class AbstractDbHelperModel extends AbstractTableGateway
      *
      * @return $this
      */
-    public function addJoin(
-        $name,
-        $condition,
-        $columns = Select::SQL_STAR,
-        $type = Select::JOIN_INNER
-    ) {
+    public function addJoin($name, $condition, $columns = Select::SQL_STAR, $type = Select::JOIN_INNER)
+    {
         // Resetting the where if the fetch method has already run
         if ($this->fetchRun === true) {
             $this->resetSelectJoinWhere();

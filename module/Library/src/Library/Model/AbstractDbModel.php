@@ -134,12 +134,6 @@ abstract class AbstractDbModel extends AbstractDbHelperModel
             call_user_func_array(array($select, 'join'), $join);
         }
 
-        // Something we might need to do something directly on the select
-        // object so we need to create a proxySelect method to handle this
-        if (method_exists($this, 'proxySelect')) {
-            $this->proxySelect($select);
-        }
-
         try {
             $resultSet = $this->selectWith($select);
         } catch (\Exception $e) {
