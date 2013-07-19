@@ -39,18 +39,11 @@ abstract class AbstractDbFieldset extends AbstractFieldset implements DbModelAwa
     /**
      * Initialized the model required for the database
      *
-     * @param      $serviceName
-     * @param bool $lockModel
-     *
+     * @param $serviceName
      * @return $this
      */
-    protected function initModel($serviceName, $lockModel = false)
+    protected function initModel($serviceName)
     {
-        // By default it can be changed any time so we only need to set it when it's true
-        if ($lockModel === true) {
-            $this->lockModel = $lockModel;
-        }
-
         if (!is_object($this->model) || $this->lockModel === false) {
             $this->model = $this->serviceLocator->get($serviceName);
         }
@@ -59,25 +52,26 @@ abstract class AbstractDbFieldset extends AbstractFieldset implements DbModelAwa
     }
 
     /**
-     *
-     * @param string $label
-     *
-     * @return array
+     * @param $lockModel
+     * @return $this
      */
-    protected function getIdElement($label)
+    public function setLockModel($lockModel)
     {
-        if ($this->mode === self::MODE_SELECT) {
-            $element = $this->getSelectId($label);
-        } else {
-            $element = $this->getHiddenId();
-        }
+        $this->lockModel = $lockModel;
 
-        return $element;
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getLockModel()
+    {
+        return $this->lockModel;
     }
 
     /**
      * @param $label
-     *
      * @return array
      */
     protected function getSelectId($label)
@@ -96,6 +90,37 @@ abstract class AbstractDbFieldset extends AbstractFieldset implements DbModelAwa
                 'required' => true
             )
         );
+    }
+
+    /**
+     * @return array
+     */
+    protected function getHiddenId()
+    {
+        return array(
+            'type' => 'Zend\Form\Element\Hidden',
+            'name' => 'id',
+            'options' => array(
+                'value' => 0
+            )
+        );
+    }
+
+    /**
+     *
+     * @param string $label
+     *
+     * @return array
+     */
+    protected function getIdElement($label)
+    {
+        if ($this->mode === self::MODE_SELECT) {
+            $element = $this->getSelectId($label);
+        } else {
+            $element = $this->getHiddenId();
+        }
+
+        return $element;
     }
 
     /**

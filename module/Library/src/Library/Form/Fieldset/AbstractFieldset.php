@@ -61,7 +61,7 @@ abstract class AbstractFieldset extends Fieldset implements
     {
         parent::__construct($name, $options);
 
-        $this->setHydrator(new ClassMethods(false));
+        $this->setHydrator(new ClassMethods());
     }
 
     /**
@@ -70,8 +70,12 @@ abstract class AbstractFieldset extends Fieldset implements
      * @param AbstractFieldset $fieldset
      * @return AbstractFieldset
      */
-    protected function buildFieldset(AbstractFieldset $fieldset)
+    protected function addFieldset(AbstractFieldset $fieldset)
     {
+        // Adding the fieldset to the current one
+        $this->add($fieldset);
+
+        // Setting dependencies
         $fieldset->setServiceLocator($this->serviceLocator);
         $fieldset->setTranslator($this->translator);
 
@@ -129,20 +133,6 @@ abstract class AbstractFieldset extends Fieldset implements
     public function getServiceLocator()
     {
         return $this->serviceLocator;
-    }
-
-    /**
-     * @return array
-     */
-    protected function getHiddenId()
-    {
-        return array(
-            'type' => 'Zend\Form\Element\Hidden',
-            'name' => 'id',
-            'options' => array(
-                'value' => 0
-            )
-        );
     }
 
     /**
