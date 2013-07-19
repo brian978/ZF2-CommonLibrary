@@ -27,6 +27,9 @@ class FriendlyUrl extends AbstractHelper
             array_pop($pieces);
         }
 
-        return strtolower(implode('-', $pieces));
+        $string = strtolower(implode('-', $pieces));
+        $string = preg_replace('/([-]+)/', '-', $string);
+
+        return $string;
     }
 }

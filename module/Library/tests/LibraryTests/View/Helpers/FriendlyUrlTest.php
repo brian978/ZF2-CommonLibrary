@@ -32,6 +32,6 @@ class FriendlyUrlTest extends AbstractTest
      */
     public function testFriendifyString($friendlyUrlHelper)
     {
-        $this->assertEquals('friendly-product-name-22', $friendlyUrlHelper('"Friendly product name 22"'));
+        $this->assertEquals('friendly-product-name-22', $friendlyUrlHelper('"Friendly -product name 22"'));
     }
 }
