@@ -48,10 +48,19 @@ class DependencyAwareFormTest extends AbstractTest
     /**
      * @depends testCanCreateFormWithDependencies
      */
+    public function testFormImplementsLocatorAwareInterface($form)
+    {
+        $this->assertInstanceOf('\Zend\ServiceManager\ServiceLocatorAwareInterface', $form);
+
+        return $form;
+    }
+
+    /**
+     * @depends testFormImplementsLocatorAwareInterface
+     */
     public function testFormIsServiceLocatorAware($form)
     {
         $this->assertInstanceOf('\Zend\ServiceManager\ServiceLocatorInterface', $form->getServiceLocator());
-//        $this->assertInstanceOf('\Zend\ServiceManager\ServiceLocatorAwareInterface', $form);
 
         return $form;
     }
@@ -59,9 +68,18 @@ class DependencyAwareFormTest extends AbstractTest
     /**
      * @depends testFormIsServiceLocatorAware
      */
+    public function testFormImplementTranslatorAwareInterface($form)
+    {
+        $this->assertInstanceOf('\Zend\I18n\Translator\TranslatorAwareInterface', $form);
+
+        return $form;
+    }
+
+    /**
+     * @depends testFormImplementTranslatorAwareInterface
+     */
     public function testFormIsTranslatorAware($form)
     {
         $this->assertInstanceOf('\Zend\I18n\Translator\Translator', $form->getTranslator());
-//        $this->assertInstanceOf('\Zend\I18n\Translator\TranslatorAwareInterface', $form);
     }
 }
