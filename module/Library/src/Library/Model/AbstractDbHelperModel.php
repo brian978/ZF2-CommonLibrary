@@ -10,8 +10,11 @@
 namespace Library\Model;
 
 use Zend\Db\Adapter\AdapterInterface;
+use Zend\Db\Adapter\Driver\ConnectionInterface;
+use Zend\Db\Adapter\Platform\PlatformInterface;
 use Zend\Db\Sql\Select;
 use Zend\Db\TableGateway\AbstractTableGateway;
+use Zend\Db\TableGateway\Exception\RuntimeException;
 
 class AbstractDbHelperModel extends AbstractTableGateway
 {
@@ -41,7 +44,7 @@ class AbstractDbHelperModel extends AbstractTableGateway
      *
      * @var array
      */
-    protected $join = array();
+    protected $joins = array();
 
     /**
      * This is used to determine when to reset the where condition
@@ -67,6 +70,27 @@ class AbstractDbHelperModel extends AbstractTableGateway
     }
 
     /**
+     * @return null|void
+     * @throws \Zend\Db\TableGateway\Exception\RuntimeException
+     */
+    public function initialize()
+    {
+        if (!$this->isInitialized) {
+            return;
+        }
+
+        parent::initialize();
+
+        if (!$this->platform instanceof PlatformInterface) {
+            throw new RuntimeException('This table does not have an Platform setup');
+        }
+
+        if (!$this->connection instanceof ConnectionInterface) {
+            throw new RuntimeException('This table does not have an Connection setup');
+        }
+    }
+
+    /**
      * @param AdapterInterface $adapter
      * @return $this
      */
@@ -86,7 +110,7 @@ class AbstractDbHelperModel extends AbstractTableGateway
     protected function resetSelectJoinWhere()
     {
         $this->where    = array();
-        $this->join     = array();
+        $this->joins    = array();
         $this->fetchRun = false;
 
         return $this;
@@ -101,7 +125,7 @@ class AbstractDbHelperModel extends AbstractTableGateway
      * @param string $sign
      * @return string
      */
-    public function getWhere($field, $value, $table = null, $sign = '=')
+    public function buildWhere($field, $value, $table = null, $sign = '=')
     {
         // When the value is an object it's because of an expression
         if (is_object($value)) {
@@ -143,7 +167,7 @@ class AbstractDbHelperModel extends AbstractTableGateway
         } elseif (is_string($field) && $value === true) { // The string has already been made
             $this->where[] = $field;
         } else { // We build the where "manually"
-            $this->where[] = $this->getWhere($field, $value, $table);
+            $this->where[] = $this->buildWhere($field, $value, $table);
         }
 
         return $this;
@@ -166,7 +190,7 @@ class AbstractDbHelperModel extends AbstractTableGateway
             $this->resetSelectJoinWhere();
         }
 
-        $this->join[] = array(
+        $this->joins[] = array(
             $name,
             $condition,
             $columns,

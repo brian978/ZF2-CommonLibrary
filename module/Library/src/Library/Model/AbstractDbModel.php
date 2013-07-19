@@ -109,7 +109,7 @@ abstract class AbstractDbModel extends AbstractDbHelperModel
             // If successful will return the number of rows
             $result = $this->update(
                 $data,
-                array($this->getWhere('id', $object->getId()))
+                array($this->buildWhere('id', $object->getId()))
             );
         } catch (\Exception $e) {
         }
@@ -130,7 +130,7 @@ abstract class AbstractDbModel extends AbstractDbHelperModel
         $select->where($this->where);
 
         // Adding the joins for the select
-        foreach ($this->join as $join) {
+        foreach ($this->joins as $join) {
             call_user_func_array(array($select, 'join'), $join);
         }
 
