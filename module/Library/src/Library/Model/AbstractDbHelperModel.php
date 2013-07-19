@@ -58,13 +58,25 @@ class AbstractDbHelperModel extends AbstractTableGateway
     /**
      * @param AdapterInterface $adapter
      */
-    public function __construct(AdapterInterface $adapter)
+    public function __construct(AdapterInterface $adapter = null)
+    {
+        if ($adapter !== null) {
+            $this->setAdapter($adapter);
+            $this->initialize();
+        }
+    }
+
+    /**
+     * @param AdapterInterface $adapter
+     * @return $this
+     */
+    public function setAdapter(AdapterInterface $adapter)
     {
         $this->adapter    = $adapter;
         $this->platform   = $this->adapter->getPlatform();
         $this->connection = $this->adapter->getDriver()->getConnection();
 
-        $this->initialize();
+        return $this;
     }
 
 
