@@ -40,10 +40,28 @@ class DependencyAwareFormTest extends AbstractTest
         /** @var $form \TestHelpers\Form\AwareForm */
         $form = $service->createForm(array('type' => '\TestHelpers\Form\AwareForm'));
 
-        $this->assertInstanceOf('\TestHelpers\Form\AwareForm', $form);
+        $this->assertInstanceOf('\Library\Form\AbstractForm', $form);
+
+        return $form;
+    }
+
+    /**
+     * @depends testCanCreateFormWithDependencies
+     */
+    public function testFormIsServiceLocatorAware($form)
+    {
         $this->assertInstanceOf('\Zend\ServiceManager\ServiceLocatorInterface', $form->getServiceLocator());
+//        $this->assertInstanceOf('\Zend\ServiceManager\ServiceLocatorAwareInterface', $form);
+
+        return $form;
+    }
+
+    /**
+     * @depends testFormIsServiceLocatorAware
+     */
+    public function testFormIsTranslatorAware($form)
+    {
         $this->assertInstanceOf('\Zend\I18n\Translator\Translator', $form->getTranslator());
-        $this->assertInstanceOf('\Zend\ServiceManager\ServiceLocatorAwareInterface', $form);
-        $this->assertInstanceOf('\Zend\I18n\Translator\TranslatorAwareInterface', $form);
+//        $this->assertInstanceOf('\Zend\I18n\Translator\TranslatorAwareInterface', $form);
     }
 }
