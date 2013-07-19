@@ -13,7 +13,7 @@ use TestHelpers\AbstractTest;
 
 class MediaSourceTest extends AbstractTest
 {
-    public function testRetrieveMediaPath()
+    public function testRetrieveHelper()
     {
         /** @var $viewHelperPluginManager \Zend\View\HelperPluginManager */
         $viewHelperPluginManager = $this->serviceManager->get('ViewHelperManager');
@@ -30,7 +30,7 @@ class MediaSourceTest extends AbstractTest
     }
 
     /**
-     * @depends testRetrieveMediaPath
+     * @depends testRetrieveHelper
      * @param \Library\View\Helpers\MediaSource $mediaSourceHelper
      */
     public function testGetMediaPathForImage($mediaSourceHelper)
