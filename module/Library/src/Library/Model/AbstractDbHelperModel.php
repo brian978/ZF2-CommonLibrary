@@ -75,18 +75,18 @@ class AbstractDbHelperModel extends AbstractTableGateway
      */
     public function initialize()
     {
-        if (!$this->isInitialized) {
+        if ($this->isInitialized) {
             return;
         }
 
         parent::initialize();
 
         if (!$this->platform instanceof PlatformInterface) {
-            throw new RuntimeException('This table does not have an Platform setup');
+            throw new RuntimeException('This table does not have an Platform setup.');
         }
 
         if (!$this->connection instanceof ConnectionInterface) {
-            throw new RuntimeException('This table does not have an Connection setup');
+            throw new RuntimeException('This table does not have an Connection setup.');
         }
     }
 

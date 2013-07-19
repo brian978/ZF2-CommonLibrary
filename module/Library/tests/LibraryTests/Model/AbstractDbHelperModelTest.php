@@ -26,12 +26,12 @@ class AbstractDbHelperModelTest extends PHPUnit_Framework_TestCase
      * @param array $data
      * @param string $dataName
      */
-    public function __construct($name = NULL, array $data = array(), $dataName = '')
+    public function __construct($name = null, array $data = array(), $dataName = '')
     {
         parent::__construct($name, $data, $dataName);
 
         // Creating the mocks
-        $adapter = $this->getMockBuilder('\Zend\Db\Adapter\AdapterInterface')
+        $this->adapter = $this->getMockBuilder('\Zend\Db\Adapter\AdapterInterface')
             ->getMock();
 
         $platform = $this->getMockBuilder('\Zend\Db\Adapter\Platform\PlatformInterface')
@@ -40,19 +40,23 @@ class AbstractDbHelperModelTest extends PHPUnit_Framework_TestCase
         $driver = $this->getMockBuilder('\Zend\Db\Adapter\Driver\DriverInterface')
             ->getMock();
 
-        $connection = $this->getMockBuilder('\Zend\Db\Adapter\Driver\DriverInterface')
+        $connection = $this->getMockBuilder('\Zend\Db\Adapter\Driver\ConnectionInterface')
             ->getMock();
 
-        // Building the adapter mock
-        $adapter->expects($this->any())
-            ->method('getDriver')
-            ->will($this->returnValue($driver));
+        /**
+         * -----------------------------
+         * DRIVER SETUP
+         * -----------------------------
+         */
+        $driver->expects($this->any())
+            ->method('getConnection')
+            ->will($this->returnValue($connection));
 
-        $adapter->expects($this->any())
-            ->method('getPlatform')
-            ->will($this->returnValue($platform));
-
-        // Building the platform mock
+        /**
+         * -----------------------------
+         * PLATFORM SETUP
+         * -----------------------------
+         */
         $platform->expects($this->any())
             ->method('quoteIdentifierChain')
             ->will($this->returnCallback(function ($identifierChain) {
@@ -64,12 +68,18 @@ class AbstractDbHelperModelTest extends PHPUnit_Framework_TestCase
             ->method('quoteValue')
             ->will($this->returnArgument(0));
 
-        // Building the driver mock
-        $driver->expects($this->any())
-            ->method('getConnection')
-            ->will($this->returnValue($connection));
+        /**
+         * -----------------------------
+         * ADAPTER SETUP
+         * -----------------------------
+         */
+        $this->adapter->expects($this->any())
+            ->method('getDriver')
+            ->will($this->returnValue($driver));
 
-        $this->adapter = $adapter;
+        $this->adapter->expects($this->any())
+            ->method('getPlatform')
+            ->will($this->returnValue($platform));
     }
 
     /**
@@ -134,5 +144,12 @@ class AbstractDbHelperModelTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(array(
             'foo.bar3=15',
         ), $dbHelper->getWhere());
+    }
+
+    public function testIfSqlIsLoaded()
+    {
+        $dbHelper = new DbHelperModel($this->adapter);
+
+        $this->assertInstanceOf('Zend\Db\Sql\Sql', $dbHelper->getSql());
     }
 }
