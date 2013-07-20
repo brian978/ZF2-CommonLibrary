@@ -15,17 +15,39 @@ use Zend\Db\Sql\Select;
 
 abstract class AbstractDbModel extends AbstractDbHelperModel
 {
-    abstract protected function doInsert($object);
-
-    abstract protected function doUpdate($object);
-
-    abstract public function doDelete($object);
-
     /**
      * @var \Zend\Db\Sql\Select
      */
     protected $select;
 
+    /**
+     * @var string
+     */
+    protected $uniqueId = 'id';
+
+    /**
+     * @param $object
+     * @return mixed
+     */
+    abstract protected function doInsert($object);
+
+    /**
+     * @param $object
+     * @return mixed
+     */
+    abstract protected function doUpdate($object);
+
+    /**
+     * @param $object
+     * @return mixed
+     */
+    abstract public function doDelete($object);
+
+    /**
+     * Resets some of the properties of the object
+     *
+     * @return $this
+     */
     protected function resetSelectJoinWhere()
     {
         $this->select = null;
@@ -142,7 +164,12 @@ abstract class AbstractDbModel extends AbstractDbHelperModel
         if (isset($resultSet)) {
             if ($resultSet->count() > 0) {
                 foreach ($resultSet as $row) {
-                    $rows[$row['id']] = $this->processRow($row);
+
+                    if(isset($row[$this->uniqueId])) {
+                        $rows[$row[$this->uniqueId]] = $this->processRow($row);
+                    } else {
+                        $rows[] = $this->processRow($row);
+                    }
                 }
             }
 
