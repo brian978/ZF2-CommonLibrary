@@ -9,9 +9,11 @@
 return array(
     'view_helpers' => array(
         'config' => array(
-            'images_path' => 'images/', // Notice the trailing slash
-            'css_path' => 'css/',
-            'js_path' => 'js/',
+            'mediaSource' => array(
+                'images_path' => 'images/', // Notice the trailing slash
+                'css_path' => 'css/',
+                'js_path' => 'js/',
+            )
         )
     )
 );

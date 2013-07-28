@@ -45,6 +45,27 @@ class MediaSource extends AbstractHelper
         return $this->pluginManager;
     }
 
+    protected function getRequest()
+    {
+        return $this->getHelperPluginManager()->getServiceLocator()->get('Request');
+    }
+
+    /**
+     * @return array
+     */
+    protected function getConfig()
+    {
+        $config = $this->getHelperPluginManager()->getServiceLocator()->get('Config');
+
+        if(isset($config['view_helpers']['config']['mediaSource'])) {
+            $config = $config['view_helpers']['config']['mediaSource'];
+        } else {
+            $config = null;
+        }
+
+        return $config;
+    }
+
     /**
      * @param string $mediaType
      * @param string $mediaName
@@ -52,38 +73,32 @@ class MediaSource extends AbstractHelper
      */
     public function __invoke($mediaType, $mediaName)
     {
-        $pluginManager = $this->getHelperPluginManager();
-
-        /** @var $serviceLocator \Zend\ServiceManager\ServiceLocatorInterface */
-        $serviceLocator = $pluginManager->getServiceLocator();
-
         $url     = '';
-        $config  = $serviceLocator->get('Config');
-        $request = $serviceLocator->get('Request');
+        $config  = $this->getConfig();
 
         // When unit testing we don't have a base path (or when the request is from Console)
-        if ($request instanceof Request) {
+        if ($this->getRequest() instanceof Request) {
             /** @var $basePath \Zend\View\Helper\BasePath */
-            $basePath = $pluginManager->get('BasePath');
+            $basePath = $this->getHelperPluginManager()->get('BasePath');
             $url .= $basePath() . '/';
         }
 
         switch ($mediaType) {
             case 'image':
-                if (isset($config['view_helpers']['config']['images_path'])) {
-                    $url .= $config['view_helpers']['config']['images_path'];
+                if (isset($config['images_path'])) {
+                    $url .= $config['images_path'];
                 }
                 break;
 
             case 'css':
-                if (isset($config['view_helpers']['config']['css_path'])) {
-                    $url .= $config['view_helpers']['config']['css_path'];
+                if (isset($config['css_path'])) {
+                    $url .= $config['css_path'];
                 }
                 break;
 
             case 'js':
-                if (isset($config['view_helpers']['config']['js_path'])) {
-                    $url .= $config['view_helpers']['config']['js_path'];
+                if (isset($config['js_path'])) {
+                    $url .= $config['js_path'];
                 }
                 break;
         }
