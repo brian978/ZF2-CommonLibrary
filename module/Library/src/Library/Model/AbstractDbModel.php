@@ -11,9 +11,12 @@ namespace Library\Model;
 
 use Library\Entity\AbstractEntity;
 use Library\Entity\EntityInterface;
+use Library\Log\DummyLogger;
 use Zend\Db\Sql\Select;
+use Zend\Log\LoggerAwareInterface;
+use Zend\Log\LoggerInterface;
 
-abstract class AbstractDbModel extends AbstractDbHelperModel
+abstract class AbstractDbModel extends AbstractDbHelperModel implements LoggerAwareInterface
 {
     /**
      * @var \Zend\Db\Sql\Select
@@ -24,6 +27,11 @@ abstract class AbstractDbModel extends AbstractDbHelperModel
      * @var string
      */
     protected $uniqueId = 'id';
+
+    /**
+     * @var \Zend\Log\LoggerInterface
+     */
+    protected $logger;
 
     /**
      * @param $object
@@ -42,6 +50,29 @@ abstract class AbstractDbModel extends AbstractDbHelperModel
      * @return mixed
      */
     abstract public function doDelete($object);
+
+    /**
+     * @return \Zend\Log\LoggerInterface
+     */
+    public function getLogger()
+    {
+        if(!$this->logger instanceof LoggerInterface) {
+            $this->logger = new DummyLogger();
+        }
+
+        return $this->logger;
+    }
+
+    /**
+     * @param \Zend\Log\LoggerInterface $logger
+     * @return $this
+     */
+    public function setLogger(LoggerInterface $logger)
+    {
+        $this->logger = $logger;
+
+        return $this;
+    }
 
     /**
      * Resets some of the properties of the object
@@ -134,6 +165,7 @@ abstract class AbstractDbModel extends AbstractDbHelperModel
                 array($this->buildWhere('id', $object->getId()))
             );
         } catch (\Exception $e) {
+            $this->getLogger()->err('Update by ID failed with message: ' . $e->getMessage());
         }
 
         return $result;
@@ -159,13 +191,15 @@ abstract class AbstractDbModel extends AbstractDbHelperModel
         try {
             $resultSet = $this->selectWith($select);
         } catch (\Exception $e) {
+            $this->getLogger()->err('Select failed with message: ' . $e->getMessage());
+            $this->getLogger()->info('Select statement is: ' . $select->getSqlString());
         }
 
         if (isset($resultSet)) {
             if ($resultSet->count() > 0) {
                 foreach ($resultSet as $row) {
 
-                    if(isset($row[$this->uniqueId])) {
+                    if (isset($row[$this->uniqueId])) {
                         $rows[$row[$this->uniqueId]] = $this->processRow($row);
                     } else {
                         $rows[] = $this->processRow($row);

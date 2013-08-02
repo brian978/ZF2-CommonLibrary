@@ -11,6 +11,8 @@ namespace LibraryTests\Model;
 
 use PHPUnit_Framework_TestCase;
 use TestHelpers\Model\DbHelperModel;
+use TestHelpers\Model\DbModel;
+use Zend\Log\Logger;
 
 class AbstractDbHelperModelTest extends PHPUnit_Framework_TestCase
 {
@@ -151,5 +153,20 @@ class AbstractDbHelperModelTest extends PHPUnit_Framework_TestCase
         $dbHelper = new DbHelperModel($this->adapter);
 
         $this->assertInstanceOf('Zend\Db\Sql\Sql', $dbHelper->getSql());
+    }
+
+    public function testModelHasDefaultLogger()
+    {
+        $dbModel = new DbModel();
+
+        $this->assertInstanceOf('\Library\Log\DummyLogger', $dbModel->getLogger());
+    }
+
+    public function testModelHasLogger()
+    {
+        $dbModel = new DbModel();
+        $dbModel->setLogger(new Logger());
+
+        $this->assertInstanceOf('\Zend\Log\Logger', $dbModel->getLogger());
     }
 }
