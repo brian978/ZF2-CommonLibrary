@@ -15,20 +15,10 @@ class FriendlyUrl extends AbstractHelper
 {
     public function __invoke($string)
     {
-        $string = preg_replace('/([\W])/', '-', $string);
-        $pieces = explode('-', $string);
-
-        // Removing the starting dashes
-        if(empty($pieces[0])) {
-            array_shift($pieces);
-        }
-
-        if(empty($pieces[count($pieces) - 1])) {
-            array_pop($pieces);
-        }
-
-        $string = strtolower(implode('-', $pieces));
-        $string = preg_replace('/([-]+)/', '-', $string);
+        $string = strtolower($string);
+        $string = preg_replace('/([\W-]+)/', '-', $string);
+        $string = substr($string, 1);
+        $string = substr($string, -strlen($string), -1);
 
         return $string;
     }
