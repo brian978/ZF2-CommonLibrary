@@ -12,6 +12,7 @@ namespace Library\Form;
 use Zend\Form\Factory as ZendFormFactory;
 use Zend\Form\FormElementManager;
 use Zend\I18n\Translator\TranslatorAwareInterface;
+use Library\Log\LoggerAwareInterface;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 
@@ -58,6 +59,12 @@ class DependencyAwareFormFactory extends ZendFormFactory
 
         if ($form instanceof ServiceLocatorAwareInterface) {
             $form->setServiceLocator($this->serviceLocator);
+        }
+
+        if ($form instanceof LoggerAwareInterface && $this->getServiceLocator()->has('logger')) {
+            /** @var $logger \Zend\Log\LoggerInterface */
+            $logger = $this->getServiceLocator()->get('logger');
+            $form->setLogger($logger);
         }
 
         return $form;

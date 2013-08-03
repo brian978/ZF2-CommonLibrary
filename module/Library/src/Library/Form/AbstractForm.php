@@ -10,15 +10,19 @@
 namespace Library\Form;
 
 use Library\Form\Fieldset\AbstractFieldset;
+use Library\Log\DummyLogger;
 use Zend\Form\Form;
 use Zend\I18n\Translator\Translator;
 use Zend\I18n\Translator\TranslatorAwareInterface;
 use Zend\InputFilter\InputFilter;
+use Library\Log\LoggerAwareInterface;
+use Zend\Log\LoggerInterface;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 use Zend\Stdlib\Hydrator\ClassMethods;
 
-abstract class AbstractForm extends Form implements TranslatorAwareInterface, ServiceLocatorAwareInterface
+abstract class AbstractForm extends Form
+    implements TranslatorAwareInterface, ServiceLocatorAwareInterface, LoggerAwareInterface
 {
     const MODE_ADD  = 1;
     const MODE_EDIT = 2;
@@ -48,6 +52,11 @@ abstract class AbstractForm extends Form implements TranslatorAwareInterface, Se
     protected $serviceLocator;
 
     /**
+     * @var \Zend\Log\LoggerInterface
+     */
+    protected $logger;
+
+    /**
      * @param  null|int|string $name    Optional name for the element
      * @param  array           $options Optional options for the element
      */
@@ -75,28 +84,32 @@ abstract class AbstractForm extends Form implements TranslatorAwareInterface, Se
      * This function is used to set up the base fieldset object in a primitive way
      * For something more complex use only the getBaseFieldsetObject() method
      *
-     * @param AbstractFieldset $object
+     * @param Fieldset\AbstractFieldset $fieldset
      * @return AbstractFieldset
      */
-    final protected function setupBaseFieldsetObject(AbstractFieldset $object)
+    final protected function setupBaseFieldsetObject(AbstractFieldset $fieldset)
     {
-        $object->setUseAsBaseFieldset(true);
+        $fieldset->setUseAsBaseFieldset(true);
 
         if ($this->mode === self::MODE_EDIT) {
-            $object->addFilter('id');
+            $fieldset->addFilter('id');
         }
 
-        if ($object instanceof ServiceLocatorAwareInterface) {
-            $object->setServiceLocator($this->serviceLocator);
+        if ($fieldset instanceof ServiceLocatorAwareInterface) {
+            $fieldset->setServiceLocator($this->serviceLocator);
         }
 
-        if ($object instanceof TranslatorAwareInterface) {
-            $object->setTranslator($this->getTranslator());
+        if ($fieldset instanceof TranslatorAwareInterface) {
+            $fieldset->setTranslator($this->getTranslator());
         }
 
-        $object->loadElements();
+        if ($fieldset instanceof LoggerAwareInterface) {
+            $fieldset->setLogger($this->getLogger());
+        }
 
-        return $object;
+        $fieldset->loadElements();
+
+        return $fieldset;
     }
 
     /**
@@ -107,24 +120,21 @@ abstract class AbstractForm extends Form implements TranslatorAwareInterface, Se
     public function loadElements()
     {
         // Adding the elements
-        $this->add($this->getBaseFieldsetObject());
-
-        $this->add(
-            array(
-                'type' => 'Zend\Form\Element\Csrf',
-                'name' => 'csrf'
-            )
-        );
-
-        $this->add(
-            array(
-                'name' => 'submit',
-                'attributes' => array(
-                    'type' => 'submit',
-                    'value' => 'Send'
+        $this->add($this->getBaseFieldsetObject())
+            ->add(
+                array(
+                    'type' => 'Zend\Form\Element\Csrf',
+                    'name' => 'csrf'
                 )
-            )
-        );
+            )->add(
+                array(
+                    'name' => 'submit',
+                    'attributes' => array(
+                        'type' => 'submit',
+                        'value' => 'Send'
+                    )
+                )
+            );
 
         return $this;
     }
@@ -238,5 +248,28 @@ abstract class AbstractForm extends Form implements TranslatorAwareInterface, Se
     public function getServiceLocator()
     {
         return $this->serviceLocator;
+    }
+
+    /**
+     * @param LoggerInterface $logger
+     * @return $this
+     */
+    public function setLogger(LoggerInterface $logger)
+    {
+        $this->logger = $logger;
+
+        return $this;
+    }
+
+    /**
+     * @return \Zend\Log\LoggerInterface
+     */
+    public function getLogger()
+    {
+        if(!$this->logger instanceof LoggerInterface) {
+            $this->logger = new DummyLogger();
+        }
+
+        return $this->logger;
     }
 }

@@ -20,9 +20,22 @@ return array(
     'service_manager' => array(
         'factories' => array(
             'DependencyAwareForm' => '\Library\Service\DependencyAwareForm',
+            'logger' => 'Zend\Log\LoggerServiceFactory',
         ),
         'aliases' => array(
             'translator' => 'MvcTranslator',
         )
+    ),
+
+    'log' => array(
+        'writers' => array(
+            array(
+                'name' => 'stream',
+                'priority' => 5,
+                'options' => array(
+                    'stream' => 'php://stderr',
+                )
+            ),
+        ),
     ),
 );

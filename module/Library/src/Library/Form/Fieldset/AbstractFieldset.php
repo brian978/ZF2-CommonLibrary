@@ -13,6 +13,8 @@ use Zend\Form\Fieldset;
 use Zend\I18n\Translator\Translator;
 use Zend\I18n\Translator\TranslatorAwareInterface;
 use Zend\InputFilter\InputFilterProviderInterface;
+use Library\Log\LoggerAwareInterface;
+use Zend\Log\LoggerInterface;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 use Zend\Stdlib\Hydrator\ClassMethods;
@@ -20,7 +22,8 @@ use Zend\Stdlib\Hydrator\ClassMethods;
 abstract class AbstractFieldset extends Fieldset implements
     InputFilterProviderInterface,
     ServiceLocatorAwareInterface,
-    TranslatorAwareInterface
+    TranslatorAwareInterface,
+    LoggerAwareInterface
 {
     const MODE_ADMIN = 1;
 
@@ -40,6 +43,11 @@ abstract class AbstractFieldset extends Fieldset implements
      * @var \Zend\I18n\Translator\Translator
      */
     protected $translator;
+
+    /**
+     * @var \Zend\Log\LoggerInterface
+     */
+    protected $logger;
 
     /**
      * @var array
@@ -72,12 +80,11 @@ abstract class AbstractFieldset extends Fieldset implements
      */
     protected function addFieldset(AbstractFieldset $fieldset)
     {
-        // Adding the fieldset to the current one
         $this->add($fieldset);
 
-        // Setting dependencies
-        $fieldset->setServiceLocator($this->serviceLocator);
-        $fieldset->setTranslator($this->translator);
+        $fieldset->setServiceLocator($this->getServiceLocator());
+        $fieldset->setTranslator($this->getTranslator());
+        $fieldset->setLogger($this->getLogger());
 
         return $fieldset;
     }
@@ -265,5 +272,28 @@ abstract class AbstractFieldset extends Fieldset implements
     public function getTranslatorTextDomain()
     {
         return 'default';
+    }
+
+    /**
+     * @param LoggerInterface $logger
+     * @return $this
+     */
+    public function setLogger(LoggerInterface $logger)
+    {
+        $this->logger = $logger;
+
+        return $this;
+    }
+
+    /**
+     * @return \Zend\Log\LoggerInterface
+     */
+    public function getLogger()
+    {
+        if(!$this->logger instanceof LoggerInterface) {
+            $this->logger = new DummyLogger();
+        }
+
+        return $this->logger;
     }
 }

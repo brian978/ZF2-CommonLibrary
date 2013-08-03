@@ -13,7 +13,7 @@ use Library\Entity\AbstractEntity;
 use Library\Entity\EntityInterface;
 use Library\Log\DummyLogger;
 use Zend\Db\Sql\Select;
-use Zend\Log\LoggerAwareInterface;
+use Library\Log\LoggerAwareInterface;
 use Zend\Log\LoggerInterface;
 
 abstract class AbstractDbModel extends AbstractDbHelperModel implements LoggerAwareInterface
