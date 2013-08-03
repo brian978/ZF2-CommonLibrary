@@ -192,8 +192,9 @@ abstract class AbstractDbModel extends AbstractDbHelperModel implements LoggerAw
             $resultSet = $this->selectWith($select);
         } catch (\Exception $e) {
             $this->getLogger()->err('Select failed with message: ' . $e->getMessage());
-            $this->getLogger()->info('Select statement is: ' . $select->getSqlString());
         }
+
+        $this->getLogger()->debug('SQL for table "' . $this->table . '": ' . $select->getSqlString());
 
         if (isset($resultSet)) {
             if ($resultSet->count() > 0) {
