@@ -25,6 +25,13 @@ abstract class AbstractDbFieldset extends AbstractFieldset implements DbModelAwa
     protected $model;
 
     /**
+     * Contains an array of model names that can be retrieved using the service manager
+     *
+     * @var array
+     */
+    protected $fieldsetModels = array();
+
+    /**
      * @var string
      */
     protected $modelName = '';
@@ -68,6 +75,49 @@ abstract class AbstractDbFieldset extends AbstractFieldset implements DbModelAwa
     public function getLockModel()
     {
         return $this->lockModel;
+    }
+
+    /**
+     * @param $fieldsetName
+     * @param $serviceName
+     * @return $this
+     */
+    public function addServiceModel($fieldsetName, $serviceName)
+    {
+        $this->fieldsetModels[$fieldsetName] = $serviceName;
+
+        return $this;
+    }
+
+    /**
+     * @param $fieldsetModels
+     * @return $this
+     */
+    public function setServiceModels($fieldsetModels)
+    {
+        $this->fieldsetModels = $fieldsetModels;
+
+        return $this;
+    }
+
+    /**
+     * This can be used when adding new fieldsets to the current one
+     *
+     * @param AbstractFieldset $fieldset
+     * @return AbstractFieldset
+     */
+    protected function addFieldset(AbstractFieldset $fieldset)
+    {
+        $fieldset      = parent::addFieldset($fieldset);
+        $fieldsetClass = get_class($fieldset);
+
+        // Injecting the proper model into the fieldset
+        if($fieldset instanceof AbstractDbFieldset && isset($this->fieldsetModels[$fieldsetClass])) {
+            $fieldset->setModel($this->getServiceLocator()->get($this->fieldsetModels[$fieldsetClass]));
+            $fieldset->setServiceModels($this->fieldsetModels[$fieldsetClass]);
+        }
+
+        return $fieldset;
     }
 
     /**
