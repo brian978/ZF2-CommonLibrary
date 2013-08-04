@@ -87,10 +87,14 @@ abstract class AbstractForm extends Form implements
     protected function getBaseFieldsetObject()
     {
         if (class_exists($this->baseFieldsetClass)) {
+            $this->getLogger()->info('Base fieldset created using class name');
             return $this->setupBaseFieldsetObject(new $this->baseFieldsetClass());
         } elseif($this->baseFieldset instanceof AbstractFieldset) {
+            $this->getLogger()->info('Base fieldset created using class object');
             return $this->setupBaseFieldsetObject($this->baseFieldset);
         }
+
+        $this->getLogger()->crit('The base fieldset could not be created');
 
         return null;
     }
