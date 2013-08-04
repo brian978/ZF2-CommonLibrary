@@ -61,9 +61,9 @@ class DependencyAwareFormFactory extends ZendFormFactory
             $form->setServiceLocator($this->serviceLocator);
         }
 
-        if ($form instanceof LoggerAwareInterface && $this->getServiceLocator()->has('logger')) {
+        if ($form instanceof LoggerAwareInterface && $this->serviceLocator->has('logger')) {
             /** @var $logger \Zend\Log\LoggerInterface */
-            $logger = $this->getServiceLocator()->get('logger');
+            $logger = $this->serviceLocator->get('logger');
             $form->setLogger($logger);
         }
 

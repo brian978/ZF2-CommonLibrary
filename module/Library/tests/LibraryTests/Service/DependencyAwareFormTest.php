@@ -81,5 +81,25 @@ class DependencyAwareFormTest extends AbstractTest
     public function testFormIsTranslatorAware($form)
     {
         $this->assertInstanceOf('\Zend\I18n\Translator\Translator', $form->getTranslator());
+
+        return $form;
+    }
+
+    /**
+     * @depends testFormIsTranslatorAware
+     */
+    public function testFormImplementsLoggerAwareInterface($form)
+    {
+        $this->assertInstanceOf('\Library\Log\LoggerAwareInterface', $form);
+
+        return $form;
+    }
+
+    /**
+     * @depends testFormImplementsLoggerAwareInterface
+     */
+    public function testFormIsLoggerAware($form)
+    {
+        $this->assertInstanceOf('\Zend\Log\LoggerInterface', $form->getLogger());
     }
 }

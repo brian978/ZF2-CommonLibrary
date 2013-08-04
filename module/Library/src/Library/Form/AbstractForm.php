@@ -21,8 +21,10 @@ use Zend\ServiceManager\ServiceLocatorAwareInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 use Zend\Stdlib\Hydrator\ClassMethods;
 
-abstract class AbstractForm extends Form
-    implements TranslatorAwareInterface, ServiceLocatorAwareInterface, LoggerAwareInterface
+abstract class AbstractForm extends Form implements
+    TranslatorAwareInterface,
+    ServiceLocatorAwareInterface,
+    LoggerAwareInterface
 {
     const MODE_ADD  = 1;
     const MODE_EDIT = 2;
@@ -266,7 +268,7 @@ abstract class AbstractForm extends Form
      */
     public function getLogger()
     {
-        if(!$this->logger instanceof LoggerInterface) {
+        if (!$this->logger instanceof LoggerInterface) {
             $this->logger = new DummyLogger();
         }
 
