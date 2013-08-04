@@ -71,12 +71,25 @@ abstract class AbstractForm extends Form implements
     }
 
     /**
+     * @param AbstractFieldset $fieldset
+     * @return $this
+     */
+    public function setBaseFieldset(AbstractFieldset $fieldset)
+    {
+        parent::setBaseFieldset($fieldset);
+
+        return $this;
+    }
+
+    /**
      * @return AbstractFieldset|null
      */
     protected function getBaseFieldsetObject()
     {
         if (class_exists($this->baseFieldsetClass)) {
             return $this->setupBaseFieldsetObject(new $this->baseFieldsetClass());
+        } elseif($this->baseFieldset instanceof AbstractFieldset) {
+            return $this->setupBaseFieldsetObject($this->baseFieldset);
         }
 
         return null;
