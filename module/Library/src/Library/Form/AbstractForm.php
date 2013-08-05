@@ -59,7 +59,7 @@ abstract class AbstractForm extends Form implements
     protected $logger;
 
     /**
-     * @param null $name
+     * @param null  $name
      * @param array $options
      */
     public function __construct($name = null, $options = array())
@@ -71,21 +71,33 @@ abstract class AbstractForm extends Form implements
     }
 
     /**
-     * @return AbstractFieldset|null
+     * @param FieldsetInterface $baseFieldset
+     * @return $this
+     */
+    public function setBaseFieldset(FieldsetInterface $baseFieldset)
+    {
+        parent::setBaseFieldset($baseFieldset);
+        $this->setupBaseFieldsetObject($baseFieldset);
+
+        return $this;
+    }
+
+    /**
+     * @return \Library\Form\Fieldset\AbstractFieldset|null
      */
     protected function getBaseFieldsetObject()
     {
+        $object = null;
+
         if (class_exists($this->baseFieldsetClass)) {
-            $this->getLogger()->info('Base fieldset created using class name');
-            return $this->setupBaseFieldsetObject(new $this->baseFieldsetClass());
-        } elseif($this->baseFieldset instanceof AbstractFieldset) {
-            $this->getLogger()->info('Base fieldset created using class object');
-            return $this->setupBaseFieldsetObject($this->baseFieldset);
+            $object = $this->setupBaseFieldsetObject(new $this->baseFieldsetClass());
+        } elseif ($this->baseFieldset instanceof AbstractFieldset) {
+            $object = $this->baseFieldset;
         }
 
-        $this->getLogger()->crit('The base fieldset could not be created');
+        $this->getLogger()->info('The base fieldset has been retrieved and is using the class: ' . get_class($object));
 
-        return null;
+        return $object;
     }
 
     /**
@@ -103,6 +115,17 @@ abstract class AbstractForm extends Form implements
             $fieldset->addFilter('id');
         }
 
+        $this->injectFieldsetDependencies($fieldset)->loadElements();
+
+        return $fieldset;
+    }
+
+    /**
+     * @param AbstractFieldset $fieldset
+     * @return $this
+     */
+    protected function injectFieldsetDependencies(AbstractFieldset $fieldset)
+    {
         if ($fieldset instanceof ServiceLocatorAwareInterface) {
             $fieldset->setServiceLocator($this->serviceLocator);
         }
@@ -114,8 +137,6 @@ abstract class AbstractForm extends Form implements
         if ($fieldset instanceof LoggerAwareInterface) {
             $fieldset->setLogger($this->getLogger());
         }
-
-        $fieldset->loadElements();
 
         return $fieldset;
     }
