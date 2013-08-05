@@ -11,7 +11,6 @@ namespace Library\Form;
 
 use Library\Form\Fieldset\AbstractFieldset;
 use Library\Log\DummyLogger;
-use Zend\Form\FieldsetInterface;
 use Zend\Form\Form;
 use Zend\I18n\Translator\Translator;
 use Zend\I18n\Translator\TranslatorAwareInterface;
