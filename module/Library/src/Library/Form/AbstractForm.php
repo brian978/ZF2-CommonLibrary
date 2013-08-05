@@ -59,26 +59,15 @@ abstract class AbstractForm extends Form implements
     protected $logger;
 
     /**
-     * @param  null|int|string $name    Optional name for the element
-     * @param  array           $options Optional options for the element
+     * @param null $name
+     * @param array $options
      */
     public function __construct($name = null, $options = array())
     {
         parent::__construct($name, $options);
 
-        $this->setHydrator(new ClassMethods(false));
+        $this->setHydrator(new ClassMethods());
         $this->setInputFilter(new InputFilter());
-    }
-
-    /**
-     * @param AbstractFieldset $fieldset
-     * @return $this
-     */
-    public function setBaseFieldset(AbstractFieldset $fieldset)
-    {
-        parent::setBaseFieldset($fieldset);
-
-        return $this;
     }
 
     /**
