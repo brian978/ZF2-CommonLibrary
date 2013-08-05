@@ -106,7 +106,7 @@ abstract class AbstractDbFieldset extends AbstractFieldset implements DbModelAwa
      * @param AbstractFieldset $fieldset
      * @return AbstractFieldset
      */
-    protected function addFieldset(AbstractFieldset $fieldset)
+    public function addFieldset(AbstractFieldset $fieldset)
     {
         $fieldset      = parent::addFieldset($fieldset);
         $fieldsetClass = get_class($fieldset);
