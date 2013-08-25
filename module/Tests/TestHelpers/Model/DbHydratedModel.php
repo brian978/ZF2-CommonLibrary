@@ -10,7 +10,7 @@
 namespace Tests\TestHelpers\Model;
 
 use Library\Model\AbstractDbModel;
-use Library\Model\Traits\HydratorHelper;
+use Library\Model\Components\HydratorHelper;
 
 class DbHydratedModel extends AbstractDbModel
 {

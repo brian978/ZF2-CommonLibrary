@@ -12,14 +12,12 @@ namespace LibraryTests\Model;
 use PHPUnit_Framework_TestCase;
 use Tests\TestHelpers\Model\DbHelperModel;
 use Tests\TestHelpers\Model\DbModel;
+use Tests\TestHelpers\Traits\AdapterTrait;
 use Zend\Log\Logger;
 
 class AbstractDbHelperModelTest extends PHPUnit_Framework_TestCase
 {
-    /**
-     * @var \Zend\Db\Adapter\AdapterInterface
-     */
-    protected $adapter;
+    use AdapterTrait;
 
     /**
      * Creates the required mocks (don't need to create/re-create them for every test)
@@ -33,55 +31,7 @@ class AbstractDbHelperModelTest extends PHPUnit_Framework_TestCase
         parent::__construct($name, $data, $dataName);
 
         // Creating the mocks
-        $this->adapter = $this->getMockBuilder('\Zend\Db\Adapter\AdapterInterface')
-            ->getMock();
-
-        $platform = $this->getMockBuilder('\Zend\Db\Adapter\Platform\PlatformInterface')
-            ->getMock();
-
-        $driver = $this->getMockBuilder('\Zend\Db\Adapter\Driver\DriverInterface')
-            ->getMock();
-
-        $connection = $this->getMockBuilder('\Zend\Db\Adapter\Driver\ConnectionInterface')
-            ->getMock();
-
-        /**
-         * -----------------------------
-         * DRIVER SETUP
-         * -----------------------------
-         */
-        $driver->expects($this->any())
-            ->method('getConnection')
-            ->will($this->returnValue($connection));
-
-        /**
-         * -----------------------------
-         * PLATFORM SETUP
-         * -----------------------------
-         */
-        $platform->expects($this->any())
-            ->method('quoteIdentifierChain')
-            ->will($this->returnCallback(function ($identifierChain) {
-                    return implode('.', $identifierChain);
-                }
-            ));
-
-        $platform->expects($this->any())
-            ->method('quoteValue')
-            ->will($this->returnArgument(0));
-
-        /**
-         * -----------------------------
-         * ADAPTER SETUP
-         * -----------------------------
-         */
-        $this->adapter->expects($this->any())
-            ->method('getDriver')
-            ->will($this->returnValue($driver));
-
-        $this->adapter->expects($this->any())
-            ->method('getPlatform')
-            ->will($this->returnValue($platform));
+        $this->getAdapter();
     }
 
     /**

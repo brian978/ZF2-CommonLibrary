@@ -7,7 +7,7 @@
  * @license   Creative Commons Attribution-ShareAlike 3.0
  */
 
-namespace Library\Model\Traits;
+namespace Library\Model\Components;
 
 use Zend\Stdlib\Hydrator\ClassMethods;
 
@@ -24,7 +24,7 @@ trait HydratorHelper
     protected function getHydrator()
     {
         if ($this->hydrator === null) {
-            $this->hydrator = new ClassMethods();
+            $this->hydrator = new ClassMethods(false);
         }
 
         return $this->hydrator;
