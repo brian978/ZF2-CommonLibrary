@@ -9,7 +9,7 @@
 
 namespace LibraryTests\View\Helpers;
 
-use TestHelpers\AbstractTest;
+use Tests\TestHelpers\AbstractTest;
 
 class MediaSourceTest extends AbstractTest
 {

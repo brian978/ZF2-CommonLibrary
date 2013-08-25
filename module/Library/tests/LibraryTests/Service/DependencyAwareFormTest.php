@@ -9,7 +9,7 @@
 
 namespace LibraryTests\Service;
 
-use TestHelpers\AbstractTest;
+use Tests\TestHelpers\AbstractTest;
 
 class DependencyAwareFormTest extends AbstractTest
 {
@@ -37,8 +37,8 @@ class DependencyAwareFormTest extends AbstractTest
         /** @var $service \Library\Form\DependencyAwareFormFactory */
         $service = $this->serviceManager->get('DependencyAwareForm');
 
-        /** @var $form \TestHelpers\Form\AwareForm */
-        $form = $service->createForm(array('type' => '\TestHelpers\Form\AwareForm'));
+        /** @var $form \Tests\TestHelpers\Form\AwareForm */
+        $form = $service->createForm(array('type' => '\Tests\TestHelpers\Form\AwareForm'));
 
         $this->assertInstanceOf('\Library\Form\AbstractForm', $form);
 

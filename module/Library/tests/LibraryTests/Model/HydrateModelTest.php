@@ -10,13 +10,13 @@
 namespace LibraryTests\Model;
 
 use PHPUnit_Framework_TestCase;
-use TestHelpers\Model\DbHydatedModel;
+use Tests\TestHelpers\Model\DbHydratedModel;
 
 class HydrateModelTest extends PHPUnit_Framework_TestCase
 {
     public function testModelReturnsHydratedResult()
     {
-        $model = new DbHydatedModel();
+        $model = new DbHydratedModel();
         $data = current($model->fetch());
 
         $this->assertInstanceOf('\ArrayObject', $data);

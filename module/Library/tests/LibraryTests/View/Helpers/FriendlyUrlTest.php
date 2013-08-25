@@ -9,7 +9,7 @@
 
 namespace LibraryTests\View\Helpers;
 
-use TestHelpers\AbstractTest;
+use Tests\TestHelpers\AbstractTest;
 
 class FriendlyUrlTest extends AbstractTest
 {
@@ -19,7 +19,7 @@ class FriendlyUrlTest extends AbstractTest
         $viewHelperPluginManager = $this->serviceManager->get('ViewHelperManager');
 
         /** @var $friendlyUrl \Library\View\Helpers\FriendlyUrl */
-        $friendlyUrl = $viewHelperPluginManager->get('friendify');
+        $friendlyUrl = $viewHelperPluginManager->get('createFriendlyUrl');
 
         $this->assertInstanceOf('\Library\View\Helpers\FriendlyUrl', $friendlyUrl);
 
@@ -30,7 +30,7 @@ class FriendlyUrlTest extends AbstractTest
      * @depends testRetrieveHelper
      * @param \Library\View\Helpers\FriendlyUrl $friendlyUrlHelper
      */
-    public function testFriendifyString($friendlyUrlHelper)
+    public function testCreateFriendlyUrlString($friendlyUrlHelper)
     {
         $this->assertEquals(
             'friendly-product-name-22',

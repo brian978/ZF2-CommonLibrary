@@ -2,14 +2,17 @@
 /**
  * ZF2-CommonLibrary
  *
+ * @link      https://github.com/brian978/ZF2-CommonLibrary
+ * @copyright Copyright (c) 2013
+ * @license   Creative Commons Attribution-ShareAlike 3.0
  */
 
-namespace TestHelpers\Model;
+namespace Tests\TestHelpers\Model;
 
 use Library\Model\AbstractDbModel;
 use Library\Model\Traits\HydratorHelper;
 
-class DbHydatedModel extends AbstractDbModel
+class DbHydratedModel extends AbstractDbModel
 {
     use HydratorHelper;
 

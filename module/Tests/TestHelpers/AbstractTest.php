@@ -7,7 +7,7 @@
  * @license   Creative Commons Attribution-ShareAlike 3.0
  */
 
-namespace TestHelpers;
+namespace Tests\TestHelpers;
 
 use PHPUnit_Framework_TestCase;
 use Zend\Mvc\Service\ServiceManagerConfig;

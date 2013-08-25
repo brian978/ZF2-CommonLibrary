@@ -25,11 +25,21 @@ class Module implements ConfigProviderInterface, AutoloaderProviderInterface
      */
     protected $moduleNamespace = __NAMESPACE__;
 
+    /**
+     * Returns configuration to merge with application configuration
+     *
+     * @return array|\Traversable
+     */
     public function getConfig()
     {
         return include $this->moduleDir . '/config/module.config.php';
     }
 
+    /**
+     * Return an array for passing to Zend\Loader\AutoloaderFactory.
+     *
+     * @return array
+     */
     public function getAutoloaderConfig()
     {
         return array(

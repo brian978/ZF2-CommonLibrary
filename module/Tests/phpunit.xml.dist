@@ -1,7 +1,8 @@
 <phpunit bootstrap="Bootstrap_init.php">
     <testsuites>
         <testsuite name="ZF2-CommonLibrary Test Suite" phpVersion="5.3.3" phpVersionOperator=">=">
-            <directory>LibraryTests/</directory>
+            <directory>../Library/tests/LibraryTests/</directory>
+            <directory>../Auth/tests/AuthTests/</directory>
         </testsuite>
     </testsuites>
 </phpunit>

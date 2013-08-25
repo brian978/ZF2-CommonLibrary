@@ -2,12 +2,12 @@
 /**
  * ZF2-CommonLibrary
  *
- * @link      https://github.com/brian978/NetworkAnalyzer
+ * @link      https://github.com/brian978/ZF2-CommonLibrary
  * @copyright Copyright (c) 2013
  * @license   Creative Commons Attribution-ShareAlike 3.0
  */
 
-namespace TestHelpers;
+namespace Tests\TestHelpers;
 
 class ApplicationConfig
 {

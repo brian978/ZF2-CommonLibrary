@@ -2,14 +2,14 @@
 /**
  * ZF2-CommonLibrary
  *
- * @link      https://github.com/brian978/ZF2-AuthModule
+ * @link      https://github.com/brian978/ZF2-CommonLibrary
  * @copyright Copyright (c) 2013
  * @license   Creative Commons Attribution-ShareAlike 3.0
  */
 
-namespace TestHelpers;
+namespace Tests;
 
-use TestHelpers\ApplicationConfig;
+use Tests\TestHelpers\ApplicationConfig;
 use Zend\Loader\AutoloaderFactory;
 use Zend\Loader\StandardAutoloader;
 use Zend\ServiceManager\ServiceManager;
@@ -85,7 +85,7 @@ class Bootstrap
                 'Zend\Loader\StandardAutoloader' => array(
                     'autoregister_zf' => true,
                     'namespaces' => array(
-                        'TestHelpers' => __DIR__ . '/TestHelpers',
+                        'Tests' => __DIR__,
                         'Mocks' => __DIR__ . '/Mocks',
                     )
                 )

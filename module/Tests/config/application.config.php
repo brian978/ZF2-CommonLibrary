@@ -2,7 +2,7 @@
 /**
  * ZF2-CommonLibrary
  *
- * @link      https://github.com/brian978/ZF2-AuthModule
+ * @link      https://github.com/brian978/ZF2-CommonLibrary
  * @copyright Copyright (c) 2013
  * @license   Creative Commons Attribution-ShareAlike 3.0
  */
@@ -10,6 +10,7 @@
 return array(
     // This should be an array of module namespaces used in the application.
     'modules' => array(
+        'Auth',
         'Library',
     ),
     // These are various options for the listeners attached to the ModuleManager

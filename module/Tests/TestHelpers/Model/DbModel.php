@@ -7,7 +7,7 @@
  * @license   Creative Commons Attribution-ShareAlike 3.0
  */
 
-namespace TestHelpers\Model;
+namespace Tests\TestHelpers\Model;
 
 use Library\Model\AbstractDbModel;
 

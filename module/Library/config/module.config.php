@@ -13,7 +13,7 @@ return array(
             'routeName' => 'Library\View\Helpers\RouteName',
             'showInputError' => 'Library\View\Helpers\RenderInputError',
             'mediaSource' => 'Library\View\Helpers\MediaSource',
-            'friendify' => 'Library\View\Helpers\FriendlyUrl',
+            'createFriendlyUrl' => 'Library\View\Helpers\FriendlyUrl',
         ),
     ),
 

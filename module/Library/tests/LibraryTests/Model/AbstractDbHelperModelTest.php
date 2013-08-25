@@ -10,8 +10,8 @@
 namespace LibraryTests\Model;
 
 use PHPUnit_Framework_TestCase;
-use TestHelpers\Model\DbHelperModel;
-use TestHelpers\Model\DbModel;
+use Tests\TestHelpers\Model\DbHelperModel;
+use Tests\TestHelpers\Model\DbModel;
 use Zend\Log\Logger;
 
 class AbstractDbHelperModelTest extends PHPUnit_Framework_TestCase
