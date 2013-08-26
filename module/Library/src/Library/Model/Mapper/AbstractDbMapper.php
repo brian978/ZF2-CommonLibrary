@@ -14,7 +14,7 @@ use Zend\Db\TableGateway\TableGateway;
 abstract class AbstractDbMapper implements DbMapperInterface
 {
     /**
-     * @var
+     * @var TableGateway
      */
     protected $dataSource;
 
@@ -33,26 +33,32 @@ abstract class AbstractDbMapper implements DbMapperInterface
     protected $map = array();
 
     /**
+     *
      * @param TableGateway $dataSource
-     * @param array        $map
-     * @param string       $entityClass
      */
-    public function __construct(TableGateway $dataSource, array $map = array(), $entityClass = '')
+    public function __construct(TableGateway $dataSource)
     {
-        $this->setDataSource($dataSource)
-            ->setMap($map)
-            ->setEntityClass($entityClass);
+        $this->setDataSource($dataSource);
     }
 
     /**
      * @param TableGateway $dataSource
      * @return AbstractDbMapper
+     * @return $this|\Library\Model\Mapper\DbMapperInterface
      */
     public function setDataSource(TableGateway $dataSource)
     {
         $this->dataSource = $dataSource;
 
         return $this;
+    }
+
+    /**
+     * @return \Zend\Db\TableGateway\TableGateway
+     */
+    public function getDataSource()
+    {
+        return $this->dataSource;
     }
 
     /**
@@ -102,10 +108,21 @@ abstract class AbstractDbMapper implements DbMapperInterface
     }
 
     /**
+     * @param $id
+     * @return mixed
+     */
+    public function findById($id)
+    {
+        $result = $this->getDataSource()->select(array('id' => $id));
+
+        return $this->populate($result->current()->getArrayCopy());
+    }
+
+    /**
      * @param $property
      * @return mixed
      */
-    protected function createMethodNameFromPropertyName($property)
+    protected function createSetterNameFromPropertyName($property)
     {
         return preg_replace_callback(
             '/_([a-z])/',
@@ -140,7 +157,7 @@ abstract class AbstractDbMapper implements DbMapperInterface
         // Populating the object
         foreach ($data as $key => $value) {
             if (isset($this->map[$key])) {
-                $methodName = $this->createMethodNameFromPropertyName($this->map[$key]);
+                $methodName = $this->createSetterNameFromPropertyName($this->map[$key]);
                 if (is_callable(array($object, $methodName))) {
                     $object->$methodName($value);
                 }

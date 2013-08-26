@@ -40,7 +40,7 @@ abstract class AbstractEntity implements EntityInterface
      *
      * @return array
      */
-    public function getArrayCopy()
+    public function toArray()
     {
         $properties       = array();
         $reflectionClass  = new \ReflectionClass($this);

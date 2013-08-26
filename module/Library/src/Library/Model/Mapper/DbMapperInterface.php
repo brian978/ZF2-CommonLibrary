@@ -9,6 +9,7 @@
 
 namespace Library\Model\Mapper;
 
+use Library\Model\Entity\EntityInterface;
 use Zend\Db\TableGateway\TableGateway;
 
 interface DbMapperInterface extends MapperInterface
@@ -19,4 +20,9 @@ interface DbMapperInterface extends MapperInterface
      */
     public function setDataSource(TableGateway $dataSource);
 
+    /**
+     * @param EntityInterface $object
+     * @return mixed
+     */
+    public function save(EntityInterface $object);
 }

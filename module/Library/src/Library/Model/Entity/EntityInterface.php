@@ -12,11 +12,6 @@ namespace Library\Model\Entity;
 interface EntityInterface
 {
     /**
-     * @return array
-     */
-    public function getArrayCopy();
-
-    /**
      * @param int $id
      * @return $this
      */
@@ -26,4 +21,9 @@ interface EntityInterface
      * @return int
      */
     public function getId();
+
+    /**
+     * @return array
+     */
+    public function toArray();
 }
