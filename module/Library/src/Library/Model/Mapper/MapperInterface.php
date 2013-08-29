@@ -20,5 +20,17 @@ interface MapperInterface
     /**
      * @return \Library\Model\Entity\AbstractEntity
      */
-    public function getEntityObject();
+    public function createEntityObject();
+
+    /**
+     * @param AbstractDbMapper $mapper
+     * @return MapperInterface
+     */
+    public function attachMapper(AbstractDbMapper $mapper);
+
+    /**
+     * @param AbstractMapper $mapper
+     * @return MapperInterface
+     */
+    public function setParentMapper(AbstractMapper $mapper);
 }

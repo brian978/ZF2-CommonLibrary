@@ -9,8 +9,8 @@
 
 namespace Library\Model;
 
-use Library\Entity\AbstractEntity;
-use Library\Entity\EntityInterface;
+use Library\Model\Entity\AbstractEntity;
+use Library\Model\Entity\EntityInterface;
 use Library\Log\DummyLogger;
 use Zend\Db\Sql\Select;
 use Library\Log\LoggerAwareInterface;
