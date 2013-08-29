@@ -37,7 +37,7 @@ class AbstractMapper implements MapperInterface
      * The map is immutable (mostly)
      *
      * @param array $map
-     * @param bool $force [ optional ] Should used only as a last resort
+     * @param bool  $force [ optional ] Should used only as a last resort
      * @return AbstractDbMapper
      */
     public function setMap(array $map, $force = false)
@@ -107,7 +107,7 @@ class AbstractMapper implements MapperInterface
      * @param mixed $data
      * @throws \RuntimeException
      * @throws WrongDataTypeException
-     * @return mixed
+     * @return \Library\Model\Entity\EntityInterface
      */
     public function populate($data)
     {
@@ -127,11 +127,22 @@ class AbstractMapper implements MapperInterface
         // Populating the object
         foreach ($data as $key => $value) {
             if (isset($this->map[$key])) {
-                // Creating setter method name and calling it
-                $methodName = $this->createSetterNameFromPropertyName($this->map[$key]);
-                if (is_callable(array($object, $methodName))) {
-                    $object->$methodName($value);
+
+                $propertyName = $this->map[$key];
+
+                // Populating the object either with the given value or with another object from another mapper
+                if (is_string($propertyName)) {
+                    $methodName = $this->createSetterNameFromPropertyName($propertyName);
+                    if (is_callable(array($object, $methodName))) {
+                        $object->$methodName($value);
+                    }
+                } elseif (is_array($propertyName) && isset($this->mappers[$propertyName[1]])) {
+                    $methodName = $this->createSetterNameFromPropertyName($propertyName[0]);
+                    if (is_callable(array($object, $methodName))) {
+                        $object->$methodName($this->mappers[$propertyName[1]]->populate($data));
+                    }
                 }
+
             }
         }
 
@@ -139,10 +150,10 @@ class AbstractMapper implements MapperInterface
     }
 
     /**
-     * @param AbstractDbMapper $mapper
+     * @param AbstractMapper $mapper
      * @return MapperInterface
      */
-    public function attachMapper(AbstractDbMapper $mapper)
+    public function attachMapper(AbstractMapper $mapper)
     {
         $this->mappers[get_class($mapper)] = $mapper->setParentMapper($this);
 
