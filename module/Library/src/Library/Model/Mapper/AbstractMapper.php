@@ -7,6 +7,8 @@
 
 namespace Library\Model\Mapper;
 
+use Library\Model\Entity\EntityInterface;
+
 class AbstractMapper implements MapperInterface
 {
     /**
@@ -34,17 +36,12 @@ class AbstractMapper implements MapperInterface
     protected $parentMapper = null;
 
     /**
-     * The map is immutable (mostly)
-     *
      * @param array $map
-     * @param bool  $force [ optional ] Should used only as a last resort
      * @return AbstractDbMapper
      */
-    public function setMap(array $map, $force = false)
+    public function setMap(array $map)
     {
-        if (empty($this->map) || $force === true) {
-            $this->map = $map;
-        }
+        $this->map = $map;
 
         return $this;
     }
@@ -58,16 +55,12 @@ class AbstractMapper implements MapperInterface
     }
 
     /**
-     * The entity class is immutable
-     *
      * @param string $entityClass
      * @return AbstractDbMapper
      */
     public function setEntityClass($entityClass)
     {
-        if (empty($this->entityClass) && is_string($entityClass)) {
-            $this->entityClass = $entityClass;
-        }
+        $this->entityClass = $entityClass;
 
         return $this;
     }
@@ -104,10 +97,41 @@ class AbstractMapper implements MapperInterface
     }
 
     /**
+     * @param EntityInterface $object
+     * @param string          $propertyName
+     * @param mixed           $value
+     */
+    protected function populateUsingString(EntityInterface $object, $propertyName, $value)
+    {
+        $methodName = $this->createSetterNameFromPropertyName($propertyName);
+        if (is_callable(array($object, $methodName))) {
+            $object->$methodName($value);
+        }
+    }
+
+    /**
+     * @param EntityInterface $object
+     * @param string          $propertyName
+     * @param mixed           $value
+     * @param array           $data
+     */
+    protected function populateUsingMapper(EntityInterface $object, $propertyName, $value, array $data)
+    {
+        $methodName = $this->createSetterNameFromPropertyName($propertyName[0]);
+        if (is_callable(array($object, $methodName))) {
+            if (is_array($value)) {
+                $object->$methodName($this->mappers[$propertyName[1]]->populate($value));
+            } else {
+                $object->$methodName($this->mappers[$propertyName[1]]->populate($data));
+            }
+        }
+    }
+
+    /**
      * @param mixed $data
      * @throws \RuntimeException
      * @throws WrongDataTypeException
-     * @return \Library\Model\Entity\EntityInterface
+     * @return EntityInterface
      */
     public function populate($data)
     {
@@ -127,20 +151,11 @@ class AbstractMapper implements MapperInterface
         // Populating the object
         foreach ($data as $key => $value) {
             if (isset($this->map[$key])) {
-
                 $propertyName = $this->map[$key];
-
-                // Populating the object either with the given value or with another object from another mapper
                 if (is_string($propertyName)) {
-                    $methodName = $this->createSetterNameFromPropertyName($propertyName);
-                    if (is_callable(array($object, $methodName))) {
-                        $object->$methodName($value);
-                    }
+                    $this->populateUsingString($object, $propertyName, $value);
                 } elseif (is_array($propertyName) && isset($this->mappers[$propertyName[1]])) {
-                    $methodName = $this->createSetterNameFromPropertyName($propertyName[0]);
-                    if (is_callable(array($object, $methodName))) {
-                        $object->$methodName($this->mappers[$propertyName[1]]->populate($data));
-                    }
+                    $this->populateUsingMapper($object, $propertyName, $value, $data);
                 }
 
             }
