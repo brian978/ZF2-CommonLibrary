@@ -10,6 +10,7 @@
 namespace Library\Model\Mapper;
 
 use Library\Model\Entity\EntityInterface;
+use Library\Model\Mapper\Exception\WrongDataTypeException;
 
 class AbstractMapper implements MapperInterface
 {

@@ -137,4 +137,13 @@ class MapperTest extends AbstractTest
         $this->assertEquals('asdadsad', $object->getTestField1());
         $this->assertEquals('asdad', $object->getTestField2()->getTestField1());
     }
+
+    /**
+     * @expectedException \Library\Model\Mapper\Exception\WrongDataTypeException
+     */
+    public function testDetectsWrongDataType()
+    {
+        $mapper = new MockMapper();
+        $mapper->populate('foo');
+    }
 }
