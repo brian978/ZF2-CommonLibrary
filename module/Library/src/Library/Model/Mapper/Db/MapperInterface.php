@@ -7,16 +7,17 @@
  * @license   Creative Commons Attribution-ShareAlike 3.0
  */
 
-namespace Library\Model\Mapper;
+namespace Library\Model\Mapper\Db;
 
 use Library\Model\Entity\EntityInterface;
+use Library\Model\Mapper\MapperInterface as StandardMapperInterface;
 use Zend\Db\TableGateway\TableGateway;
 
-interface DbMapperInterface extends MapperInterface
+interface MapperInterface extends StandardMapperInterface
 {
     /**
      * @param TableGateway $dataSource
-     * @return DbMapperInterface
+     * @return MapperInterface
      */
     public function setDataSource(TableGateway $dataSource);
 

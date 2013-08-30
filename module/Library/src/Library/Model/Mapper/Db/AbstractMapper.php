@@ -7,12 +7,12 @@
  * @license   Creative Commons Attribution-ShareAlike 3.0
  */
 
-namespace Library\Model\Mapper;
+namespace Library\Model\Mapper\Db;
 
-use Library\Model\Mapper\Exception\WrongDataTypeException;
+use Library\Model\Mapper\AbstractMapper as StandardAbstractMapper;
 use Zend\Db\TableGateway\TableGateway;
 
-abstract class AbstractDbMapper extends AbstractMapper implements DbMapperInterface
+abstract class AbstractMapper extends StandardAbstractMapper implements MapperInterface
 {
     /**
      * @var TableGateway
