@@ -37,4 +37,16 @@ class FriendlyUrlTest extends AbstractTest
             $friendlyUrlHelper('"Friendly  -product /][;=-name 22"')
         );
     }
+
+    /**
+     * @depends testRetrieveHelper
+     * @param \Library\View\Helpers\FriendlyUrl $friendlyUrlHelper
+     */
+    public function testCreateAnotherFriendlyUrlString($friendlyUrlHelper)
+    {
+        $this->assertEquals(
+            'friendly-product-name-22',
+            $friendlyUrlHelper('Friendly  -product /][;=-name 22')
+        );
+    }
 }

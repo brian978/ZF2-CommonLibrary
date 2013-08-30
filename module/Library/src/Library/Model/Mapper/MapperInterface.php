@@ -23,10 +23,10 @@ interface MapperInterface
     public function createEntityObject();
 
     /**
-     * @param AbstractDbMapper $mapper
+     * @param AbstractMapper $mapper
      * @return MapperInterface
      */
-    public function attachMapper(AbstractDbMapper $mapper);
+    public function attachMapper(AbstractMapper $mapper);
 
     /**
      * @param AbstractMapper $mapper
