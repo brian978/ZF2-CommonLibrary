@@ -10,77 +10,16 @@
 namespace LibraryTests\Model\Mapper;
 
 use Tests\TestHelpers\AbstractTest;
-use Tests\TestHelpers\Model\Entity\MockEntity;
 use Tests\TestHelpers\Model\Mapper\MockMapper;
 use Tests\TestHelpers\Model\Mapper\MockMapper2;
+use Tests\TestHelpers\Model\Mapper\MockMapper3;
 use Tests\TestHelpers\Traits\AdapterTrait;
+use Tests\TestHelpers\Traits\DatabaseCreator;
 use Zend\Db\Adapter\Adapter;
-use Zend\Db\TableGateway\TableGateway;
 
 class MapperTest extends AbstractTest
 {
-    /**
-     * @var string
-     */
-    protected static $sqlitePaths = 'module/Tests/database';
-
-    /**
-     * @var \Zend\Db\Adapter\Adapter
-     */
-    protected static $adapter;
-
-    public static function setUpBeforeClass()
-    {
-        $databaseFilePath = self::$sqlitePaths . '/database_mapper.db';
-
-        if (is_file($databaseFilePath)) {
-            @unlink($databaseFilePath);
-        }
-
-        // Setting up the adapter
-        self::$adapter = new Adapter(array(
-            'driver' => 'Pdo_Sqlite',
-            'database' => $databaseFilePath
-        ));
-
-        self::$adapter->query(
-            file_get_contents(self::$sqlitePaths . '/schema.sqlite.sql'),
-            Adapter::QUERY_MODE_EXECUTE
-        );
-        self::$adapter->query(file_get_contents(self::$sqlitePaths . '/data.sqlite.sql'), Adapter::QUERY_MODE_EXECUTE);
-    }
-
-    public function testCanMapDataToObject()
-    {
-        $mock = $this->getMockBuilder('\Library\Model\Mapper\AbstractDbMapper')
-            ->setConstructorArgs(array(new TableGateway('test', self::$adapter)))
-            ->getMockForAbstractClass();
-
-        $entityObject = $mock->setEntityClass('\Tests\TestHelpers\Model\Entity\MockEntity')
-            ->setMap(array('id' => 'id', 'field1' => 'testField1'))
-            ->findById(1);
-
-        $this->assertEquals(1, $entityObject->getId());
-
-        return $entityObject;
-    }
-
-    /**
-     * @depends testCanMapDataToObject
-     *
-     * @param MockEntity $object
-     */
-    public function testCanMapDataToOtherFields(MockEntity $object)
-    {
-        $this->assertEquals('test1', $object->getTestField1());
-    }
-
-    public static function tearDownAfterClass()
-    {
-        // Removing the test database (connection to db needs to be closed)
-        self::$adapter->getDriver()->getConnection()->disconnect();
-        unlink(self::$sqlitePaths . '/database_mapper.db');
-    }
+    use DatabaseCreator;
 
     public function testCanMapAndLinkObjects()
     {
@@ -136,6 +75,48 @@ class MapperTest extends AbstractTest
         $this->assertInstanceOf('\Tests\TestHelpers\Model\Entity\MockEntity', $object->getTestField2());
         $this->assertEquals('asdadsad', $object->getTestField1());
         $this->assertEquals('asdad', $object->getTestField2()->getTestField1());
+
+        return $mapper;
+    }
+
+    /**
+     * @depends testCanMapNestedArrayAndLinkObjects
+     *
+     * @param MockMapper $mapper
+     */
+    public function testCanNestMultipleObjects($mapper)
+    {
+        $data = array(
+            'id' => 1,
+            'field1' => 'asdadsad',
+            'entity2' => array(
+                'joinedId' => 2,
+                'joinedField1' => 'asdad',
+                'entity2' => array(
+                    'joinedId' => 3,
+                    'joinedField1' => 'asdad12313',
+                )
+            )
+        );
+
+        // Changing the map in the second mapper
+        $mapper2 = $mapper->getMapper('Tests\TestHelpers\Model\Mapper\MockMapper2')->setMap(
+            array(
+                'joinedId' => 'id',
+                'joinedField1' => 'testField1',
+                'entity2' => array(
+                    'testField2',
+                    'Tests\TestHelpers\Model\Mapper\MockMapper3',
+                ),
+            )
+        );
+
+        // Attaching the mapper that will process the last map
+        $mapper2->attachMapper(new MockMapper3());
+
+        $object = $mapper->populate($data);
+
+        $this->assertEquals('asdad12313', $object->getTestField2()->getTestField2()->getTestField1());
     }
 
     /**
@@ -145,5 +126,32 @@ class MapperTest extends AbstractTest
     {
         $mapper = new MockMapper();
         $mapper->populate('foo');
+    }
+
+    public function testCanMapArraysOfDataAndLinkObjects()
+    {
+        $data = array(
+            'id' => 1,
+            'field1' => 'asdadsad',
+            'joinedId' => array(
+                array(
+                    'joinedId' => 2,
+                    'joinedField1' => 'asdad',
+                ),
+                array(
+                    'joinedId' => 3,
+                    'joinedField1' => 'asdasdwqqasda',
+                ),
+            )
+        );
+
+        $mapper = new MockMapper();
+        $mapper->attachMapper(new MockMapper2());
+        $mapper->setEntityClass('\Tests\TestHelpers\Model\Entity\ArrayMockEntity');
+
+        $object = $mapper->populate($data);
+
+        $this->assertInstanceOf('\Tests\TestHelpers\Model\Entity\MockEntity', current($object->getTestField2()));
+        $this->assertCount(2, $object->getTestField2());
     }
 }

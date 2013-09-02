@@ -10,30 +10,29 @@
 namespace Library\Model\Mapper\Db;
 
 use Library\Model\Mapper\AbstractMapper as StandardAbstractMapper;
-use Zend\Db\TableGateway\TableGateway;
 
 abstract class AbstractMapper extends StandardAbstractMapper implements MapperInterface
 {
     /**
-     * @var TableGateway
+     * @var TableInterface
      */
     protected $dataSource;
 
     /**
      *
-     * @param TableGateway $dataSource
+     * @param TableInterface $dataSource
      */
-    public function __construct(TableGateway $dataSource)
+    public function __construct(TableInterface $dataSource)
     {
         $this->setDataSource($dataSource);
     }
 
     /**
-     * @param TableGateway $dataSource
+     * @param TableInterface $dataSource
      * @return AbstractDbMapper
      * @return $this|\Library\Model\Mapper\DbMapperInterface
      */
-    public function setDataSource(TableGateway $dataSource)
+    public function setDataSource(TableInterface $dataSource)
     {
         $this->dataSource = $dataSource;
 
@@ -41,7 +40,7 @@ abstract class AbstractMapper extends StandardAbstractMapper implements MapperIn
     }
 
     /**
-     * @return \Zend\Db\TableGateway\TableGateway
+     * @return TableInterface
      */
     public function getDataSource()
     {

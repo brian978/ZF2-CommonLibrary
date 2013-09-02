@@ -11,15 +11,14 @@ namespace Library\Model\Mapper\Db;
 
 use Library\Model\Entity\EntityInterface;
 use Library\Model\Mapper\MapperInterface as StandardMapperInterface;
-use Zend\Db\TableGateway\TableGateway;
 
 interface MapperInterface extends StandardMapperInterface
 {
     /**
-     * @param TableGateway $dataSource
+     * @param TableInterface $dataSource
      * @return MapperInterface
      */
-    public function setDataSource(TableGateway $dataSource);
+    public function setDataSource(TableInterface $dataSource);
 
     /**
      * @param EntityInterface $object

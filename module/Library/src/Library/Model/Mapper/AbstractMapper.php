@@ -102,7 +102,7 @@ class AbstractMapper implements MapperInterface
     /**
      * @param EntityInterface $object
      * @param string          $propertyName
-     * @param mixed           $value
+     * @param string          $value
      */
     protected function populateUsingString(EntityInterface $object, $propertyName, $value)
     {
@@ -114,18 +114,41 @@ class AbstractMapper implements MapperInterface
 
     /**
      * @param EntityInterface $object
-     * @param string          $propertyName
+     * @param string          $mapperClass
+     * @param string          $methodName
+     * @param array           $data
+     */
+    protected function populateUsingArrays(EntityInterface $object, $mapperClass, $methodName, array $data)
+    {
+        foreach ($data as $value) {
+            $object->$methodName($this->mappers[$mapperClass]->populate($value));
+        }
+    }
+
+    /**
+     * @param EntityInterface $object
+     * @param string          $mappingInfo
      * @param mixed           $value
      * @param array           $data
      */
-    protected function populateUsingMapper(EntityInterface $object, $propertyName, $value, array $data)
+    protected function populateUsingMapper(EntityInterface $object, $mappingInfo, $value, array $data = array())
     {
-        $methodName = $this->createSetterNameFromPropertyName($propertyName[0]);
+        // Creating the method name using the first element in the mapping info array
+        $methodName = $this->createSetterNameFromPropertyName($mappingInfo[0]);
+
+        // Populating the information using the mapper given in the mapping info array
         if (is_callable(array($object, $methodName))) {
+
+            // When the $value is not an array it probably means that the data
+            // is mixed in a huge array and certain mappers handle certain data
             if (is_array($value)) {
-                $object->$methodName($this->mappers[$propertyName[1]]->populate($value));
+                if (is_array(current($value))) {
+                    $this->populateUsingArrays($object, $mappingInfo[1], $methodName, $value);
+                } else {
+                    $object->$methodName($this->mappers[$mappingInfo[1]]->populate($value));
+                }
             } else {
-                $object->$methodName($this->mappers[$propertyName[1]]->populate($data));
+                $object->$methodName($this->mappers[$mappingInfo[1]]->populate($data));
             }
         }
     }
@@ -160,11 +183,48 @@ class AbstractMapper implements MapperInterface
                 } elseif (is_array($propertyName) && isset($this->mappers[$propertyName[1]])) {
                     $this->populateUsingMapper($object, $propertyName, $value, $data);
                 }
-
             }
         }
 
         return $object;
+    }
+
+    /**
+     * @param $mapperClass
+     * @return AbstractMapper|null
+     */
+    public function getMapper($mapperClass)
+    {
+        $foundMapper = null;
+
+        if ($this->hasMapper($mapperClass)) {
+            $foundMapper = $this->mappers[$mapperClass];
+        } else {
+            // Asking around in the other mappers for the requested mapper
+            /** @var $mapper \Library\Model\Mapper\AbstractMapper */
+            foreach ($this->mappers as $mapper) {
+                $tmpMapper = $mapper->getMapper($mapperClass);
+                if ($tmpMapper instanceof AbstractMapper) {
+                    $foundMapper = $tmpMapper;
+                    break;
+                }
+            }
+        }
+
+        return $foundMapper;
+    }
+
+    /**
+     * @param $mapperClass
+     * @return bool
+     */
+    public function hasMapper($mapperClass)
+    {
+        if (isset($this->mappers[$mapperClass])) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
