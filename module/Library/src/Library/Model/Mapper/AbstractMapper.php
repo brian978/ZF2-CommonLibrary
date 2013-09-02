@@ -172,7 +172,7 @@ class AbstractMapper implements MapperInterface
             throw new \RuntimeException('The class for the entity has not been set');
         }
 
-        $object = new $this->entityClass();
+        $object = $this->createEntityObject();
 
         // Populating the object
         foreach ($data as $key => $value) {
@@ -190,6 +190,9 @@ class AbstractMapper implements MapperInterface
     }
 
     /**
+     * Returns a mapper matching the requested class
+     * IMPORTANT: this feature will not look for a specific instance, just a class name
+     *
      * @param $mapperClass
      * @return AbstractMapper|null
      */

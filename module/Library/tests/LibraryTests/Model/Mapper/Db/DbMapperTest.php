@@ -54,4 +54,9 @@ class DbMapperTest extends AbstractTest
 
         $this->assertEquals(1, $table->select()->count());
     }
+
+    public function testCanJoinTablesAndMapObjects()
+    {
+
+    }
 }
