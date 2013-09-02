@@ -114,19 +114,6 @@ class AbstractMapper implements MapperInterface
 
     /**
      * @param EntityInterface $object
-     * @param string          $mapperClass
-     * @param string          $methodName
-     * @param array           $data
-     */
-    protected function populateUsingArrays(EntityInterface $object, $mapperClass, $methodName, array $data)
-    {
-        foreach ($data as $value) {
-            $object->$methodName($this->mappers[$mapperClass]->populate($value));
-        }
-    }
-
-    /**
-     * @param EntityInterface $object
      * @param string          $mappingInfo
      * @param mixed           $value
      * @param array           $data
@@ -138,17 +125,30 @@ class AbstractMapper implements MapperInterface
 
         // Populating the information using the mapper given in the mapping info array
         if (is_callable(array($object, $methodName))) {
+            $mapper         = $this->mappers[$mappingInfo[1]];
+            $dataToPopulate = $data;
 
             // When the $value is not an array it probably means that the data
             // is mixed in a huge array and certain mappers handle certain data
             if (is_array($value)) {
-                if (is_array(current($value))) {
-                    $this->populateUsingArrays($object, $mappingInfo[1], $methodName, $value);
-                } else {
-                    $object->$methodName($this->mappers[$mappingInfo[1]]->populate($value));
+
+                // We change the data to be populated to avoid creating another condition
+                $dataToPopulate = $value;
+
+                if (is_array(current($dataToPopulate))) {
+
+                    // Populating the object with the objects created from the arrays
+                    foreach ($dataToPopulate as $newData) {
+                        $object->$methodName($mapper->populate($newData));
+                    }
+
+                    // Resetting the data to we won't populate it one more times
+                    $dataToPopulate = array();
                 }
-            } else {
-                $object->$methodName($this->mappers[$mappingInfo[1]]->populate($data));
+            }
+
+            if(!empty($dataToPopulate)) {
+                $object->$methodName($mapper->populate($dataToPopulate));
             }
         }
     }
