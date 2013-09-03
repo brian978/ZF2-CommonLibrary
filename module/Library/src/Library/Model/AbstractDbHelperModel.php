@@ -119,10 +119,10 @@ class AbstractDbHelperModel extends AbstractTableGateway
     /**
      * Used to generate a where condition
      *
-     * @param string $field
+     * @param string     $field
      * @param string|int $value
-     * @param string $table
-     * @param string $sign
+     * @param string     $table
+     * @param string     $sign
      * @return string
      */
     public function buildWhere($field, $value, $table = null, $sign = '=')
@@ -149,9 +149,9 @@ class AbstractDbHelperModel extends AbstractTableGateway
     /**
      * Used to add a where condition
      *
-     * @param string|array $field
+     * @param string|array    $field
      * @param string|int|bool $value When this is set to true the $field param in an array
-     * @param string $table
+     * @param string          $table
      *
      * @return $this
      */

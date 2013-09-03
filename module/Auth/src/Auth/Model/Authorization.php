@@ -23,7 +23,7 @@ class Authorization
 
     /**
      * @param AuthorizationDbInterface $model
-     * @param Authentication $auth
+     * @param Authentication           $auth
      */
     public function __construct(AuthorizationDbInterface $model, Authentication $auth)
     {
@@ -38,6 +38,7 @@ class Authorization
     public function setAuth($auth)
     {
         $this->auth = $auth;
+
         return $this;
     }
 
@@ -56,6 +57,7 @@ class Authorization
     public function setModel($model)
     {
         $this->model = $model;
+
         return $this;
     }
 

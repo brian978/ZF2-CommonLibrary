@@ -15,16 +15,16 @@ class MediaSourceTest extends AbstractTest
 {
     public function testRetrieveHelper()
     {
-        /** @var $viewHelperPluginManager \Zend\View\HelperPluginManager */
-        $viewHelperPluginManager = $this->serviceManager->get('ViewHelperManager');
+        /** @var $helperPluginManager \Zend\View\HelperPluginManager */
+        $helperPluginManager = $this->serviceManager->get('ViewHelperManager');
 
         /** @var $mediaSource \Library\View\Helpers\MediaSource */
-        $mediaSource = $viewHelperPluginManager->get('mediaSource');
+        $mediaSource = $helperPluginManager->get('mediaSource');
 
         $this->assertInstanceOf('\Library\View\Helpers\MediaSource', $mediaSource);
 
         // Adding the manager to the helper
-        $mediaSource->setHelperPluginManager($viewHelperPluginManager);
+        $mediaSource->setHelperPluginManager($helperPluginManager);
 
         return $mediaSource;
     }

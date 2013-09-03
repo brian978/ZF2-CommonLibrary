@@ -20,6 +20,6 @@ class AdapterServiceFactory implements FactoryInterface
      */
     public function createService(ServiceLocatorInterface $serviceLocator)
     {
-        return new Adapter();
+        return new Adapter($serviceLocator);
     }
 }

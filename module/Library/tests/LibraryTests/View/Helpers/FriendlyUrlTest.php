@@ -15,11 +15,11 @@ class FriendlyUrlTest extends AbstractTest
 {
     public function testRetrieveHelper()
     {
-        /** @var $viewHelperPluginManager \Zend\View\HelperPluginManager */
-        $viewHelperPluginManager = $this->serviceManager->get('ViewHelperManager');
+        /** @var $helperPluginManager \Zend\View\HelperPluginManager */
+        $helperPluginManager = $this->serviceManager->get('ViewHelperManager');
 
         /** @var $friendlyUrl \Library\View\Helpers\FriendlyUrl */
-        $friendlyUrl = $viewHelperPluginManager->get('createFriendlyUrl');
+        $friendlyUrl = $helperPluginManager->get('createFriendlyUrl');
 
         $this->assertInstanceOf('\Library\View\Helpers\FriendlyUrl', $friendlyUrl);
 

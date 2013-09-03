@@ -123,7 +123,7 @@ class Platform implements PlatformInterface
      * Quote identifier in fragment
      *
      * @param  string $identifier
-     * @param  array $additionalSafeWords
+     * @param  array  $additionalSafeWords
      * @return string
      */
     public function quoteIdentifierInFragment($identifier, array $additionalSafeWords = array())

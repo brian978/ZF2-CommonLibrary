@@ -9,14 +9,15 @@
 
 namespace Library\Form\Fieldset;
 
+use Library\Form\Components\LoggerAwareObject;
+use Library\Form\Components\ServiceLocatorAwareObject;
+use Library\Form\Components\TranslatorAwareObject;
 use Zend\Form\Fieldset;
 use Zend\I18n\Translator\Translator;
 use Zend\I18n\Translator\TranslatorAwareInterface;
 use Zend\InputFilter\InputFilterProviderInterface;
 use Library\Log\LoggerAwareInterface;
-use Zend\Log\LoggerInterface;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
-use Zend\ServiceManager\ServiceLocatorInterface;
 use Zend\Stdlib\Hydrator\ClassMethods;
 
 abstract class AbstractFieldset extends Fieldset implements
@@ -25,6 +26,8 @@ abstract class AbstractFieldset extends Fieldset implements
     TranslatorAwareInterface,
     LoggerAwareInterface
 {
+    use TranslatorAwareObject, LoggerAwareObject, ServiceLocatorAwareObject;
+
     const MODE_ADMIN = 1;
 
     /**
@@ -33,21 +36,6 @@ abstract class AbstractFieldset extends Fieldset implements
      * @var int
      */
     public $mode = self::MODE_ADMIN;
-
-    /**
-     * @var \Zend\ServiceManager\ServiceLocatorInterface
-     */
-    protected $serviceLocator;
-
-    /**
-     * @var \Zend\I18n\Translator\Translator
-     */
-    protected $translator;
-
-    /**
-     * @var \Zend\Log\LoggerInterface
-     */
-    protected $logger;
 
     /**
      * @var array
@@ -120,29 +108,6 @@ abstract class AbstractFieldset extends Fieldset implements
     }
 
     /**
-     * Set service locator
-     *
-     * @param ServiceLocatorInterface $serviceLocator
-     * @return $this
-     */
-    public function setServiceLocator(ServiceLocatorInterface $serviceLocator)
-    {
-        $this->serviceLocator = $serviceLocator;
-
-        return $this;
-    }
-
-    /**
-     * Get service locator
-     *
-     * @return ServiceLocatorInterface
-     */
-    public function getServiceLocator()
-    {
-        return $this->serviceLocator;
-    }
-
-    /**
      * These are a set of input filters that are used by most forms
      *
      * @return array
@@ -187,113 +152,5 @@ abstract class AbstractFieldset extends Fieldset implements
     public function getInputFilterSpecification()
     {
         return array_intersect_key($this->getGenericInputFilterSpecs(), $this->filters);
-    }
-
-    /**
-     * Sets translator to use in helper
-     *
-     * @param  Translator $translator  [optional] translator.
-     *                                 Default is null, which sets no translator.
-     * @param  string     $textDomain  [optional] text domain
-     *                                 Default is null, which skips setTranslatorTextDomain
-     * @return TranslatorAwareInterface
-     */
-    public function setTranslator(Translator $translator = null, $textDomain = null)
-    {
-        unset($textDomain);
-
-        $this->translator = $translator;
-
-        return $translator;
-    }
-
-    /**
-     * Returns translator used in object
-     *
-     * @return Translator|null
-     */
-    public function getTranslator()
-    {
-        return $this->translator;
-    }
-
-    /**
-     * Checks if the object has a translator
-     *
-     * @return bool
-     */
-    public function hasTranslator()
-    {
-        return is_object($this->translator);
-    }
-
-    /**
-     * Sets whether translator is enabled and should be used
-     *
-     * @param  bool $enabled [optional] whether translator should be used.
-     *                       Default is true.
-     * @return TranslatorAwareInterface
-     */
-    public function setTranslatorEnabled($enabled = true)
-    {
-        unset($enabled);
-
-        return $this->translator;
-    }
-
-    /**
-     * Returns whether translator is enabled and should be used
-     *
-     * @return bool
-     */
-    public function isTranslatorEnabled()
-    {
-        return true;
-    }
-
-    /**
-     * Set translation text domain
-     *
-     * @param  string $textDomain
-     * @return TranslatorAwareInterface
-     */
-    public function setTranslatorTextDomain($textDomain = 'default')
-    {
-        unset($textDomain);
-
-        return $this->translator;
-    }
-
-    /**
-     * Return the translation text domain
-     *
-     * @return string
-     */
-    public function getTranslatorTextDomain()
-    {
-        return 'default';
-    }
-
-    /**
-     * @param LoggerInterface $logger
-     * @return $this
-     */
-    public function setLogger(LoggerInterface $logger)
-    {
-        $this->logger = $logger;
-
-        return $this;
-    }
-
-    /**
-     * @return \Zend\Log\LoggerInterface
-     */
-    public function getLogger()
-    {
-        if(!$this->logger instanceof LoggerInterface) {
-            $this->logger = new DummyLogger();
-        }
-
-        return $this->logger;
     }
 }

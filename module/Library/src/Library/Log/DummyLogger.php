@@ -30,6 +30,8 @@ class DummyLogger extends ZendLogger
      */
     public function log($priority, $message, $extra = array())
     {
+        unset($priority, $message, $extra);
+
         return $this;
     }
 }

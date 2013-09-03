@@ -72,7 +72,7 @@ abstract class AbstractDbFieldset extends AbstractFieldset implements DbModelAwa
     /**
      * @return bool
      */
-    public function getLockModel()
+    public function isModelLocked()
     {
         return $this->lockModel;
     }
@@ -112,7 +112,7 @@ abstract class AbstractDbFieldset extends AbstractFieldset implements DbModelAwa
         $fieldsetClass = get_class($fieldset);
 
         // Injecting the proper model into the fieldset
-        if($fieldset instanceof AbstractDbFieldset && isset($this->fieldsetModels[$fieldsetClass])) {
+        if ($fieldset instanceof AbstractDbFieldset && isset($this->fieldsetModels[$fieldsetClass])) {
             $fieldset->setModel($this->getServiceLocator()->get($this->fieldsetModels[$fieldsetClass]));
             $fieldset->setServiceModels($this->fieldsetModels[$fieldsetClass]);
         }

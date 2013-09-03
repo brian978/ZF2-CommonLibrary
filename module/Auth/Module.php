@@ -78,18 +78,18 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
      * The config could have been used but then it would create a loading priority dependency between
      * the Authentication module and the module where the custom factory/service would have been registered
      *
-     * @param MvcEvent $e
+     * @param MvcEvent $event
      */
-    public function loadAuthChecker(MvcEvent $e)
+    public function loadAuthChecker(MvcEvent $event)
     {
         /** @var $eventManager \Zend\EventManager\EventManager */
-        $eventManager = $e->getApplication()->getEventManager();
+        $eventManager = $event->getApplication()->getEventManager();
         $listeners    = $eventManager->getListeners('checkAuthStatus');
 
         if ($listeners->count() == 1) {
-            $eventManager->trigger('checkAuthStatus', $e);
+            $eventManager->trigger('checkAuthStatus', $event);
         } else {
-            $authChecker = new AuthenticationChecker($e);
+            $authChecker = new AuthenticationChecker($event);
             $authChecker->checkAuthStatus();
         }
     }

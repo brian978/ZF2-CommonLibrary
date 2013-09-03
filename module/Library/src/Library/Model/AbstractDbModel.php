@@ -56,7 +56,7 @@ abstract class AbstractDbModel extends AbstractDbHelperModel implements LoggerAw
      */
     public function getLogger()
     {
-        if(!$this->logger instanceof LoggerInterface) {
+        if (!$this->logger instanceof LoggerInterface) {
             $this->logger = new DummyLogger();
         }
 

@@ -94,7 +94,7 @@ class MapperTest extends AbstractTest
                 'joinedField1' => 'asdad',
                 'entity2' => array(
                     'joinedId' => 3,
-                    'joinedField1' => 'asdad12313',
+                    'joinedField' => 'asdad12313',
                 )
             )
         );

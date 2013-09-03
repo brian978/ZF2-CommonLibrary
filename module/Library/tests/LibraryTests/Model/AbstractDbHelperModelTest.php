@@ -22,8 +22,8 @@ class AbstractDbHelperModelTest extends PHPUnit_Framework_TestCase
     /**
      * Creates the required mocks (don't need to create/re-create them for every test)
      *
-     * @param null $name
-     * @param array $data
+     * @param null   $name
+     * @param array  $data
      * @param string $dataName
      */
     public function __construct($name = null, array $data = array(), $dataName = '')
@@ -60,11 +60,14 @@ class AbstractDbHelperModelTest extends PHPUnit_Framework_TestCase
         $dbHelper->addWhere('bar1', '13', 'foo');
         $dbHelper->addWhere('bar2', '14', 'foo');
 
-        $this->assertEquals(array(
-            'foo.bar=12',
-            'foo.bar1=13',
-            'foo.bar2=14',
-        ), $dbHelper->getWhere());
+        $this->assertEquals(
+            array(
+                'foo.bar=12',
+                'foo.bar1=13',
+                'foo.bar2=14',
+            ),
+            $dbHelper->getWhere()
+        );
     }
 
     public function testIfWhereArrayIsPopulatedWithAnArray()
@@ -75,16 +78,22 @@ class AbstractDbHelperModelTest extends PHPUnit_Framework_TestCase
         $dbHelper->addWhere('bar1', '13', 'foo');
         $dbHelper->addWhere('bar2', '14', 'foo');
 
-        $dbHelper->addWhere(array(
-            $dbHelper->buildWhere('bar3', '15', 'foo')
-        ), true);
+        $dbHelper->addWhere(
+            array(
+                $dbHelper->buildWhere('bar3', '15', 'foo')
+            ),
+            true
+        );
 
-        $this->assertEquals(array(
-            'foo.bar=12',
-            'foo.bar1=13',
-            'foo.bar2=14',
-            'foo.bar3=15',
-        ), $dbHelper->getWhere());
+        $this->assertEquals(
+            array(
+                'foo.bar=12',
+                'foo.bar1=13',
+                'foo.bar2=14',
+                'foo.bar3=15',
+            ),
+            $dbHelper->getWhere()
+        );
     }
 
     public function testIfWhereArrayIsPopulatedWithAString()
@@ -93,9 +102,12 @@ class AbstractDbHelperModelTest extends PHPUnit_Framework_TestCase
 
         $dbHelper->addWhere($dbHelper->buildWhere('bar3', '15', 'foo'), true);
 
-        $this->assertEquals(array(
-            'foo.bar3=15',
-        ), $dbHelper->getWhere());
+        $this->assertEquals(
+            array(
+                'foo.bar3=15',
+            ),
+            $dbHelper->getWhere()
+        );
     }
 
     public function testIfSqlIsLoaded()

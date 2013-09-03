@@ -9,17 +9,17 @@
 
 namespace Library\Form;
 
+use Library\Form\Components\LoggerAwareObject;
+use Library\Form\Components\ServiceLocatorAwareObject;
+use Library\Form\Components\TranslatorAwareObject;
 use Library\Form\Fieldset\AbstractFieldset;
-use Library\Log\DummyLogger;
 use Zend\Form\FieldsetInterface;
 use Zend\Form\Form;
 use Zend\I18n\Translator\Translator;
 use Zend\I18n\Translator\TranslatorAwareInterface;
 use Zend\InputFilter\InputFilter;
 use Library\Log\LoggerAwareInterface;
-use Zend\Log\LoggerInterface;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
-use Zend\ServiceManager\ServiceLocatorInterface;
 use Zend\Stdlib\Hydrator\ClassMethods;
 
 abstract class AbstractForm extends Form implements
@@ -27,6 +27,8 @@ abstract class AbstractForm extends Form implements
     ServiceLocatorAwareInterface,
     LoggerAwareInterface
 {
+    use TranslatorAwareObject, LoggerAwareObject, ServiceLocatorAwareObject;
+
     const MODE_ADD  = 1;
     const MODE_EDIT = 2;
 
@@ -43,21 +45,6 @@ abstract class AbstractForm extends Form implements
      * @var int
      */
     public $mode = self::MODE_ADD;
-
-    /**
-     * @var \Zend\I18n\Translator\Translator
-     */
-    protected $translator;
-
-    /**
-     * @var \Zend\ServiceManager\ServiceLocatorInterface
-     */
-    protected $serviceLocator;
-
-    /**
-     * @var \Zend\Log\LoggerInterface
-     */
-    protected $logger;
 
     /**
      * @param null  $name
@@ -167,139 +154,5 @@ abstract class AbstractForm extends Form implements
             );
 
         return $this;
-    }
-
-    /**
-     * Sets translator to use in helper
-     *
-     * @param  Translator $translator  [optional] translator.
-     *                                 Default is null, which sets no translator.
-     * @param  string     $textDomain  [optional] text domain
-     *                                 Default is null, which skips setTranslatorTextDomain
-     *
-     * @return TranslatorAwareInterface
-     */
-    public function setTranslator(Translator $translator = null, $textDomain = null)
-    {
-        $this->translator = $translator;
-
-        // noting to set
-        unset($textDomain);
-
-        return $this;
-    }
-
-    /**
-     * Returns translator used in object
-     *
-     * @return Translator|null
-     */
-    public function getTranslator()
-    {
-        return $this->translator;
-    }
-
-    /**
-     * Checks if the object has a translator
-     *
-     * @return bool
-     */
-    public function hasTranslator()
-    {
-        return is_object($this->translator);
-    }
-
-    /**
-     * Sets whether translator is enabled and should be used
-     *
-     * @param  bool $enabled [optional] whether translator should be used.
-     *                       Default is true.
-     *
-     * @return TranslatorAwareInterface
-     */
-    public function setTranslatorEnabled($enabled = true)
-    {
-        // nothing to set
-        unset($enabled);
-
-        return $this->translator;
-    }
-
-    /**
-     * Returns whether translator is enabled and should be used
-     *
-     * @return bool
-     */
-    public function isTranslatorEnabled()
-    {
-        return true;
-    }
-
-    /**
-     * Set translation text domain
-     *
-     * @param  string $textDomain
-     *
-     * @return TranslatorAwareInterface
-     */
-    public function setTranslatorTextDomain($textDomain = 'default')
-    {
-        // nothing to set
-        unset($textDomain);
-
-        return $this->translator;
-    }
-
-    /**
-     * Return the translation text domain
-     *
-     * @return string
-     */
-    public function getTranslatorTextDomain()
-    {
-        return '';
-    }
-
-    /**
-     * Set service locator
-     *
-     * @param ServiceLocatorInterface $serviceLocator
-     */
-    public function setServiceLocator(ServiceLocatorInterface $serviceLocator)
-    {
-        $this->serviceLocator = $serviceLocator;
-    }
-
-    /**
-     * Get service locator
-     *
-     * @return ServiceLocatorInterface
-     */
-    public function getServiceLocator()
-    {
-        return $this->serviceLocator;
-    }
-
-    /**
-     * @param LoggerInterface $logger
-     * @return $this
-     */
-    public function setLogger(LoggerInterface $logger)
-    {
-        $this->logger = $logger;
-
-        return $this;
-    }
-
-    /**
-     * @return \Zend\Log\LoggerInterface
-     */
-    public function getLogger()
-    {
-        if (!$this->logger instanceof LoggerInterface) {
-            $this->logger = new DummyLogger();
-        }
-
-        return $this->logger;
     }
 }

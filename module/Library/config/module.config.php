@@ -16,7 +16,6 @@ return array(
             'createFriendlyUrl' => 'Library\View\Helpers\FriendlyUrl',
         ),
     ),
-
     'service_manager' => array(
         'factories' => array(
             'DependencyAwareForm' => '\Library\Service\DependencyAwareForm',
@@ -26,7 +25,6 @@ return array(
             'translator' => 'MvcTranslator',
         )
     ),
-
     'log' => array(
         'writers' => array(
             array(

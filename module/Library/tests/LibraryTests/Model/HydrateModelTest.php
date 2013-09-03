@@ -17,7 +17,7 @@ class HydrateModelTest extends PHPUnit_Framework_TestCase
     public function testModelReturnsHydratedResult()
     {
         $model = new DbHydratedModel();
-        $data = current($model->fetch());
+        $data  = current($model->fetch());
 
         $this->assertInstanceOf('\ArrayObject', $data);
     }

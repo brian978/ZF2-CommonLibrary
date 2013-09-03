@@ -42,15 +42,18 @@ trait DatabaseCreator
         }
 
         // Setting up the adapter
-        self::$adapter = new Adapter(array(
-            'driver' => 'Pdo_Sqlite',
-            'database' => $databaseFilePath
-        ));
+        self::$adapter = new Adapter(
+            array(
+                'driver' => 'Pdo_Sqlite',
+                'database' => $databaseFilePath
+            )
+        );
 
         self::$adapter->query(
             file_get_contents(self::$sqlitePaths . '/schema.sqlite.sql'),
             Adapter::QUERY_MODE_EXECUTE
         );
+
         self::$adapter->query(file_get_contents(self::$sqlitePaths . '/data.sqlite.sql'), Adapter::QUERY_MODE_EXECUTE);
     }
 

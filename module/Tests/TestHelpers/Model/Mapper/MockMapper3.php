@@ -27,6 +27,6 @@ class MockMapper3 extends AbstractMapper
      */
     protected $map = array(
         'joinedId' => 'id',
-        'joinedField1' => 'testField1',
+        'joinedField' => 'testField1',
     );
 }

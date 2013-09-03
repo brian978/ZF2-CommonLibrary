@@ -147,7 +147,7 @@ class AbstractMapper implements MapperInterface
                 }
             }
 
-            if(!empty($dataToPopulate)) {
+            if (!empty($dataToPopulate)) {
                 $object->$methodName($mapper->populate($dataToPopulate));
             }
         }

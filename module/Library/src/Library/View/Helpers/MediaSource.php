@@ -57,7 +57,7 @@ class MediaSource extends AbstractHelper
     {
         $config = $this->getHelperPluginManager()->getServiceLocator()->get('Config');
 
-        if(isset($config['view_helpers']['config']['mediaSource'])) {
+        if (isset($config['view_helpers']['config']['mediaSource'])) {
             $config = $config['view_helpers']['config']['mediaSource'];
         } else {
             $config = null;
@@ -73,8 +73,8 @@ class MediaSource extends AbstractHelper
      */
     public function __invoke($mediaType, $mediaName)
     {
-        $url     = '';
-        $config  = $this->getConfig();
+        $url    = '';
+        $config = $this->getConfig();
 
         // When unit testing we don't have a base path (or when the request is from Console)
         if ($this->getRequest() instanceof Request) {

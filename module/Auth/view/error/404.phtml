@@ -10,7 +10,9 @@
             $reasonMessage = $this->translate('The requested controller was unable to dispatch the request.');
             break;
         case 'error-controller-not-found':
-            $reasonMessage = $this->translate('The requested controller could not be mapped to an existing controller class.');
+            $reasonMessage = $this->translate(
+                'The requested controller could not be mapped to an existing controller class.'
+            );
             break;
         case 'error-controller-invalid':
             $reasonMessage = $this->translate('The requested controller was not dispatchable.');
@@ -38,7 +40,10 @@
                 && $this->controller_class
                 && $this->controller_class != $this->controller
             ) {
-                echo '(' . sprintf($this->translate('resolves to %s'), $this->escapeHtml($this->controller_class)) . ')';
+                echo '(' . sprintf(
+                        $this->translate('resolves to %s'),
+                        $this->escapeHtml($this->controller_class)
+                    ) . ')';
             }
             ?>
         </dd>
@@ -49,7 +54,7 @@
 <?php if (isset($this->display_exceptions) && $this->display_exceptions): ?>
 
     <?php if (isset($this->exception) && $this->exception instanceof Exception): ?>
-        <hr/>
+        <hr />
         <h2><?php echo $this->translate('Additional information') ?>:</h2>
         <h3><?php echo get_class($this->exception); ?></h3>
         <dl>
@@ -71,7 +76,7 @@
         $e = $this->exception->getPrevious();
         if ($e) :
             ?>
-            <hr/>
+            <hr />
             <h2><?php echo $this->translate('Previous exceptions') ?>:</h2>
             <ul class="unstyled">
                 <?php while ($e) : ?>
