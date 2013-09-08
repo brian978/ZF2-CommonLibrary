@@ -11,9 +11,10 @@ namespace LibraryTests\Model\Mapper\Db;
 
 use Tests\TestHelpers\AbstractTest;
 use Tests\TestHelpers\Model\Entity\MockEntity;
+use Tests\TestHelpers\Model\Mapper\Db\DbMockMapper;
+use Tests\TestHelpers\Model\Mapper\Db\DbMockMapper2;
 use Tests\TestHelpers\Traits\DatabaseCreator;
 use Zend\Db\Adapter\Adapter;
-use Zend\Db\TableGateway\TableGateway;
 
 class DbMapperTest extends AbstractTest
 {
@@ -48,15 +49,23 @@ class DbMapperTest extends AbstractTest
         $this->assertEquals('test1', $object->getTestField1());
     }
 
-    public function testSelectFromDatabase()
-    {
-        $table = new TableGateway('test', self::$adapter);
-
-        $this->assertEquals(1, $table->select()->count());
-    }
-
     public function testCanJoinTablesAndMapObjects()
     {
+        $testTableMock = $this->getMockBuilder('\Library\Model\Db\AbstractTableGateway')
+            ->setConstructorArgs(array('test', self::$adapter))
+            ->getMockForAbstractClass();
 
+        $testJoinMock = $this->getMockBuilder('\Library\Model\Db\AbstractTableGateway')
+            ->setConstructorArgs(array('test_join', self::$adapter))
+            ->getMockForAbstractClass();
+
+        $baseMapper = new DbMockMapper($testTableMock);
+        $baseMapper->attachMapper(new DbMockMapper2($testJoinMock));
+
+        /** @var $object MockEntity */
+        $object = $baseMapper->findById(1);
+
+        $this->assertInstanceOf('\Tests\TestHelpers\Model\Entity\MockEntity', $object);
+        $this->assertInstanceOf('\Tests\TestHelpers\Model\Entity\MockEntity', $object->getTestField2());
     }
 }

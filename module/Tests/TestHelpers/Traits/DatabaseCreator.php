@@ -37,7 +37,7 @@ trait DatabaseCreator
     {
         $databaseFilePath = self::$sqlitePaths . '/database_mapper.db';
 
-        if (is_file($databaseFilePath)) {
+        if (file_exists($databaseFilePath)) {
             @unlink($databaseFilePath);
         }
 
@@ -54,13 +54,20 @@ trait DatabaseCreator
             Adapter::QUERY_MODE_EXECUTE
         );
 
-        self::$adapter->query(file_get_contents(self::$sqlitePaths . '/data.sqlite.sql'), Adapter::QUERY_MODE_EXECUTE);
+        self::$adapter->query(
+            file_get_contents(self::$sqlitePaths . '/data.sqlite.sql'),
+            Adapter::QUERY_MODE_EXECUTE
+        );
     }
 
     protected static function destroyDb()
     {
         // Removing the test database (connection to db needs to be closed)
-        self::$adapter->getDriver()->getConnection()->disconnect();
-        unlink(self::$sqlitePaths . '/database_mapper.db');
+        $connection = self::$adapter->getDriver()->getConnection();
+        while ($connection->isConnected() == true) {
+            $connection->disconnect();
+        }
+
+        @unlink(self::$sqlitePaths . '/database_mapper.db');
     }
 }

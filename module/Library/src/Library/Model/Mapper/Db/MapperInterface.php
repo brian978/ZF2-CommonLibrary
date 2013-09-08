@@ -11,6 +11,7 @@ namespace Library\Model\Mapper\Db;
 
 use Library\Model\Entity\EntityInterface;
 use Library\Model\Mapper\MapperInterface as StandardMapperInterface;
+use Zend\Db\Sql\Select;
 
 interface MapperInterface extends StandardMapperInterface
 {
@@ -21,8 +22,20 @@ interface MapperInterface extends StandardMapperInterface
     public function setDataSource(TableInterface $dataSource);
 
     /**
+     * @return TableInterface
+     */
+    public function getDataSource();
+
+    /**
      * @param EntityInterface $object
      * @return mixed
      */
     public function save(EntityInterface $object);
+
+    /**
+     * Calls all the data sources from all the mappers and prepares the select statement
+     *
+     * @return mixed
+     */
+    public function prepareSelect();
 }

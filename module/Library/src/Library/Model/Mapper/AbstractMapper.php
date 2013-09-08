@@ -24,6 +24,16 @@ class AbstractMapper implements MapperInterface
     /**
      * The map that will be used to populate the object
      *
+     * The map may look something like this:
+     * array(
+     *      'id' => 'id',
+     *      'someFieldName' => 'entityField',
+     *      'joinedId' => array( // This would be the field that triggers the dispatch to another mapper
+     *          'entityField2', // Field from the entity to put the result from the dispatched mapper
+     *          'Full\Qualified\Name\Of\Mapper',
+     *      ),
+     * )
+     *
      * @var array
      */
     protected $map = array();
@@ -100,9 +110,57 @@ class AbstractMapper implements MapperInterface
     }
 
     /**
+     * The $propertyName are the options for a specific field
+     *
+     * @param $mappingInfo
+     * @internal param $propertyName
+     * @return bool
+     */
+    protected function useMapper(array $mappingInfo)
+    {
+        $result = false;
+
+        if (isset($mappingInfo[1]) || isset($mappingInfo['mapper'][1])) {
+            $result = true;
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param array $mappingInfo
+     * @return mixed
+     */
+    protected function getMethodNameFromInfo(array $mappingInfo)
+    {
+        if (isset($mappingInfo['mapper'][1])) {
+            $method = $mappingInfo['mapper'][0];
+        } else {
+            $method = $mappingInfo[0];
+        }
+
+        return $method;
+    }
+
+    /**
+     * @param array $mappingInfo
+     * @return AbstractMapper
+     */
+    protected function getMapperFromInfo(array $mappingInfo)
+    {
+        if (isset($mappingInfo['mapper'][1])) {
+            $mapperClass = $mappingInfo['mapper'][1];
+        } else {
+            $mapperClass = $mappingInfo[1];
+        }
+
+        return $this->mappers[$mapperClass];
+    }
+
+    /**
      * @param EntityInterface $object
-     * @param string          $propertyName
-     * @param string          $value
+     * @param string $propertyName
+     * @param string $value
      */
     protected function populateUsingString(EntityInterface $object, $propertyName, $value)
     {
@@ -114,18 +172,18 @@ class AbstractMapper implements MapperInterface
 
     /**
      * @param EntityInterface $object
-     * @param string          $mappingInfo
-     * @param mixed           $value
-     * @param array           $data
+     * @param array $mappingInfo
+     * @param mixed $value
+     * @param array $data
      */
-    protected function populateUsingMapper(EntityInterface $object, $mappingInfo, $value, array $data = array())
+    protected function populateUsingMapper(EntityInterface $object, array $mappingInfo, $value, array $data = array())
     {
         // Creating the method name using the first element in the mapping info array
-        $methodName = $this->createSetterNameFromPropertyName($mappingInfo[0]);
+        $methodName = $this->createSetterNameFromPropertyName($this->getMethodNameFromInfo($mappingInfo));
 
         // Populating the information using the mapper given in the mapping info array
         if (is_callable(array($object, $methodName))) {
-            $mapper         = $this->mappers[$mappingInfo[1]];
+            $mapper         = $this->getMapperFromInfo($mappingInfo);
             $dataToPopulate = $data;
 
             // When the $value is not an array it probably means that the data
@@ -180,7 +238,7 @@ class AbstractMapper implements MapperInterface
                 $propertyName = $this->map[$key];
                 if (is_string($propertyName)) {
                     $this->populateUsingString($object, $propertyName, $value);
-                } elseif (is_array($propertyName) && isset($this->mappers[$propertyName[1]])) {
+                } elseif (is_array($propertyName) && $this->useMapper($propertyName)) {
                     $this->populateUsingMapper($object, $propertyName, $value, $data);
                 }
             }
