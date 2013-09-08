@@ -10,6 +10,7 @@
 namespace Library\Model\Mapper;
 
 use Library\Model\Entity\EntityInterface;
+use Library\Model\Mapper\Exception\MapperNotFoundException;
 use Library\Model\Mapper\Exception\WrongDataTypeException;
 
 class AbstractMapper implements MapperInterface
@@ -144,6 +145,7 @@ class AbstractMapper implements MapperInterface
 
     /**
      * @param array $mappingInfo
+     * @throws MapperNotFoundException
      * @return AbstractMapper
      */
     protected function getMapperFromInfo(array $mappingInfo)
@@ -152,6 +154,10 @@ class AbstractMapper implements MapperInterface
             $mapperClass = $mappingInfo['mapper'][1];
         } else {
             $mapperClass = $mappingInfo[1];
+        }
+
+        if(!isset($this->mappers[$mapperClass])) {
+            throw new MapperNotFoundException('The mapper "' . $mapperClass . '" was not attached.');
         }
 
         return $this->mappers[$mapperClass];

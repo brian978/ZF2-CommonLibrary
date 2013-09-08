@@ -9,7 +9,7 @@ namespace Library\Model\Mapper\Exception;
 
 use RuntimeException;
 
-class MapperNotFoundInInfo extends RuntimeException
+class MapperNotFoundException extends RuntimeException
 {
 
 }

@@ -72,12 +72,36 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
     }
 
     /**
+     * Select
+     *
+     * @param Where|\Closure|string|array $where
+     * @return ResultSet
+     */
+    public function select($where = null)
+    {
+        if (!$this->isInitialized) {
+            $this->initialize();
+        }
+
+        $select = $this->getSelect();
+
+        if ($where instanceof \Closure) {
+            $where($select);
+        } elseif ($where !== null) {
+            $select->where($where);
+        }
+
+        return $this->selectWith($select);
+    }
+
+    /**
      * @return Select
      */
     public function getSelect()
     {
         if (empty($this->select)) {
             $this->select = $this->getSql()->select();
+            $this->getMapper()->prepareSelect();
         }
 
         return $this->select;
@@ -88,20 +112,17 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
      * The data represents the information on how to join the objects
      *
      * @param AbstractTableGateway $rootDataSource
-     * @param AbstractTableGateway $linkDataSource
      * @param array $data
-     * @return void
+     * @return AbstractTableGateway
      */
-    public function enhanceSelect(
-        AbstractTableGateway $rootDataSource,
-        AbstractTableGateway $linkDataSource,
-        array $data
-    ) {
-
+    public function enhanceSelect(AbstractTableGateway $rootDataSource, array $data)
+    {
+        // This is executed by the gateways that are attached to the child mappers
         if (empty($this->select)) {
-            $this->select = $rootDataSource->getSql()->select();
+            $this->select = $rootDataSource->getSelect();
         }
 
+        // Building the join data
         $on = '';
 
         foreach ($data['on'] as $leftField => $rightField) {
@@ -125,7 +146,9 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
             $on .= $leftField . ' = ' . $rightField;
         }
 
-        $this->select->join($data['table'], $on, $data['columns'], $data['type']);
+        $this->getSelect()->join($data['table'], $on, $data['columns'], $data['type']);
+
+        return $this;
     }
 
     /**
@@ -134,7 +157,7 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
      */
     public function findById($id)
     {
-        $select = $this->getMapper()->prepareSelect();
+        $select = $this->getSelect();
         $result = $this->selectWith($select->where(array($this->table . '.id' => $id)));
 
 //        echo $select->getSqlString($this->getAdapter()->getPlatform());

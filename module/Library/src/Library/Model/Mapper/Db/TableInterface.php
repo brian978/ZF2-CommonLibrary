@@ -26,13 +26,8 @@ interface TableInterface extends TableGatewayInterface
      * The data represents the information on how to join the objects
      *
      * @param AbstractTableGateway $rootDataSource
-     * @param AbstractTableGateway $linkDataSource
      * @param array $data
      * @return mixed
      */
-    public function enhanceSelect(
-        AbstractTableGateway $rootDataSource,
-        AbstractTableGateway $linkDataSource,
-        array $data
-    );
+    public function enhanceSelect(AbstractTableGateway $rootDataSource, array $data);
 }

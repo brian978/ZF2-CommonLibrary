@@ -38,7 +38,7 @@ abstract class AbstractMapper extends StandardAbstractMapper implements MapperIn
      */
     public function __call($name, array $arguments)
     {
-        if(is_string($name) && is_callable(array($this->dataSource, $name))) {
+        if (is_string($name) && is_callable(array($this->dataSource, $name))) {
             return call_user_func_array(array($this->dataSource, $name), $arguments);
         }
 
@@ -67,23 +67,31 @@ abstract class AbstractMapper extends StandardAbstractMapper implements MapperIn
     }
 
     /**
-     * @return Select
+     * Makes sure that the select has been modified if necessary by all the mappers
+     *
+     * @return AbstractMapper
      */
     public function prepareSelect()
     {
         foreach ($this->map as $field) {
+
+            // Checking if the field uses a mapper so we dispatch the join request to it
             if (is_array($field) && $this->useMapper($field)) {
-                /** @var $mapper AbstractMapper */
-                foreach ($this->mappers as $mapper) {
-                    $this->getDataSource()->enhanceSelect(
-                        $this->getDataSource(),
-                        $mapper->getDataSource(),
-                        $field['dataSource']
-                    );
+
+                // Selecting the baseMapper
+                /** @var $baseMapper AbstractMapper */
+                if ($this->parentMapper !== null) {
+                    $baseMapper = $this->parentMapper;
+                } else {
+                    $baseMapper = $this;
                 }
+
+                $this->getMapperFromInfo($field)
+                    ->prepareSelect()
+                    ->enhanceSelect($baseMapper->getDataSource(), $field['dataSource']);
             }
         }
 
-        return $this->getDataSource()->getSelect();
+        return $this;
     }
 }

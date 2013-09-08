@@ -13,6 +13,7 @@ use Tests\TestHelpers\AbstractTest;
 use Tests\TestHelpers\Model\Entity\MockEntity;
 use Tests\TestHelpers\Model\Mapper\Db\DbMockMapper;
 use Tests\TestHelpers\Model\Mapper\Db\DbMockMapper2;
+use Tests\TestHelpers\Model\Mapper\Db\DbMockMapper3;
 use Tests\TestHelpers\Traits\DatabaseCreator;
 use Zend\Db\Adapter\Adapter;
 
@@ -55,12 +56,11 @@ class DbMapperTest extends AbstractTest
             ->setConstructorArgs(array('test', self::$adapter))
             ->getMockForAbstractClass();
 
-        $testJoinMock = $this->getMockBuilder('\Library\Model\Db\AbstractTableGateway')
-            ->setConstructorArgs(array('test_join', self::$adapter))
-            ->getMockForAbstractClass();
-
         $baseMapper = new DbMockMapper($testTableMock);
-        $baseMapper->attachMapper(new DbMockMapper2($testJoinMock));
+        $mapper2    = new DbMockMapper2(clone $testTableMock);
+
+        $baseMapper->attachMapper($mapper2);
+        $mapper2->attachMapper(new DbMockMapper3(clone $testTableMock));
 
         /** @var $object MockEntity */
         $object = $baseMapper->findById(1);
