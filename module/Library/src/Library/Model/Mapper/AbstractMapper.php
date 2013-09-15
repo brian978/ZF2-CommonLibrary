@@ -35,6 +35,19 @@ class AbstractMapper implements MapperInterface
      *      ),
      * )
      *
+     * OR
+     *
+     * array(
+     *      'mapName' => array(
+     *          'id' => 'id',
+     *          'someFieldName' => 'entityField',
+     *          'joinedId' => array( // This would be the field that triggers the dispatch to another mapper
+     *              'entityField2', // Field from the entity to put the result from the dispatched mapper
+     *              'Full\Qualified\Name\Of\Mapper',
+     *          ),
+     *      )
+     * )
+     *
      * @var array
      */
     protected $map = array();
@@ -219,11 +232,12 @@ class AbstractMapper implements MapperInterface
 
     /**
      * @param mixed $data
+     * @param string $mapName
+     * @throws Exception\WrongDataTypeException
      * @throws \RuntimeException
-     * @throws WrongDataTypeException
      * @return EntityInterface
      */
-    public function populate($data)
+    public function populate($data, $mapName = 'default')
     {
         if (!is_array($data) && $data instanceof \ArrayIterator === false) {
             $message = 'The $data argument must be either an array or an instance of \ArrayIterator';
@@ -236,12 +250,19 @@ class AbstractMapper implements MapperInterface
             throw new \RuntimeException('The class for the entity has not been set');
         }
 
+        // Selecting the map
+        if(isset($this->map[$mapName])) {
+            $selectedMap = $this->map[$mapName];
+        } else {
+            $selectedMap = $this->map;
+        }
+
         $object = $this->createEntityObject();
 
         // Populating the object
         foreach ($data as $key => $value) {
-            if (isset($this->map[$key])) {
-                $propertyName = $this->map[$key];
+            if (isset($selectedMap[$key])) {
+                $propertyName = $selectedMap[$key];
                 if (is_string($propertyName)) {
                     $this->populateUsingString($object, $propertyName, $value);
                 } elseif (is_array($propertyName) && $this->useMapper($propertyName)) {

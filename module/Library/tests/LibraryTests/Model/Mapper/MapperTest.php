@@ -10,6 +10,7 @@
 namespace LibraryTests\Model\Mapper;
 
 use Tests\TestHelpers\AbstractTest;
+use Tests\TestHelpers\Model\Mapper\DefaultMockMapper;
 use Tests\TestHelpers\Model\Mapper\MockMapper;
 use Tests\TestHelpers\Model\Mapper\MockMapper2;
 use Tests\TestHelpers\Model\Mapper\MockMapper3;
@@ -34,6 +35,27 @@ class MapperTest extends AbstractTest
         $mapper->attachMapper(new MockMapper2());
 
         $object = $mapper->populate($data);
+
+        // TODO: split these
+        $this->assertInstanceOf('\Tests\TestHelpers\Model\Entity\MockEntity', $object);
+        $this->assertInstanceOf('\Tests\TestHelpers\Model\Entity\MockEntity', $object->getTestField2());
+        $this->assertEquals('asdadsad', $object->getTestField1());
+        $this->assertEquals('asdad', $object->getTestField2()->getTestField1());
+    }
+
+    public function testCanMapUsingAMapName()
+    {
+        $data = array(
+            'id' => 1,
+            'field1' => 'asdadsad',
+            'joinedId' => 2,
+            'joinedField1' => 'asdad',
+        );
+
+        $mapper = new DefaultMockMapper();
+        $mapper->attachMapper(new MockMapper2());
+
+        $object = $mapper->populate($data, 'default');
 
         // TODO: split these
         $this->assertInstanceOf('\Tests\TestHelpers\Model\Entity\MockEntity', $object);

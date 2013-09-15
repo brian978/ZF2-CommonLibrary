@@ -10,6 +10,7 @@
 namespace Library\Model\Db;
 
 use Library\Model\Mapper\Db\AbstractMapper;
+use Library\Model\Mapper\Db\MapperInterface;
 use Library\Model\Mapper\Db\TableInterface;
 use Zend\Db\Sql\Select;
 use Zend\Db\TableGateway\TableGateway;
@@ -55,10 +56,10 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
     }
 
     /**
-     * @param AbstractMapper $mapper
+     * @param \Library\Model\Mapper\Db\MapperInterface $mapper
      * @return mixed
      */
-    public function setMapper(AbstractMapper $mapper)
+    public function setMapper(MapperInterface $mapper)
     {
         $this->mapper = $mapper;
     }
@@ -111,11 +112,11 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
      * Method is used to add the JOIN statements to the provided $select object
      * The data represents the information on how to join the objects
      *
-     * @param AbstractTableGateway $rootDataSource
+     * @param TableInterface $rootDataSource
      * @param array $data
      * @return AbstractTableGateway
      */
-    public function enhanceSelect(AbstractTableGateway $rootDataSource, array $data)
+    public function enhanceSelect(TableInterface $rootDataSource, array $data)
     {
         // This is executed by the gateways that are attached to the child mappers
         if (empty($this->select)) {
