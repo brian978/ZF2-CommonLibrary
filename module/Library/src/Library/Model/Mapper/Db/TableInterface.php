@@ -25,10 +25,10 @@ interface TableInterface extends TableGatewayInterface
      * The data represents the information on how to join the objects
      *
      * @param TableInterface $rootDataSource
-     * @param array $data
+     * @param array $specs
      * @return mixed
      */
-    public function enhanceSelect(TableInterface $rootDataSource, array $data);
+    public function enhanceSelect(TableInterface $rootDataSource, array $specs);
 
     /**
      * @return string

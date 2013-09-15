@@ -113,10 +113,10 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
      * The data represents the information on how to join the objects
      *
      * @param TableInterface $rootDataSource
-     * @param array $data
+     * @param array $specs
      * @return AbstractTableGateway
      */
-    public function enhanceSelect(TableInterface $rootDataSource, array $data)
+    public function enhanceSelect(TableInterface $rootDataSource, array $specs)
     {
         // This is executed by the gateways that are attached to the child mappers
         if (empty($this->select)) {
@@ -126,13 +126,13 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
         // Building the join data
         $on = '';
 
-        foreach ($data['on'] as $leftField => $rightField) {
+        foreach ($specs['on'] as $leftField => $rightField) {
             if (strpos($leftField, '.') === false) {
                 $leftField = $rootDataSource->getTable() . '.' . $leftField;
             }
 
             if (strpos($rightField, '.') === false) {
-                $rightTableName = $data['table'];
+                $rightTableName = $specs['table'];
                 if (is_array($rightTableName)) {
                     $rightTableName = key($rightTableName);
                 }
@@ -147,7 +147,7 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
             $on .= $leftField . ' = ' . $rightField;
         }
 
-        $this->getSelect()->join($data['table'], $on, $data['columns'], $data['type']);
+        $this->getSelect()->join($specs['table'], $on, $specs['columns'], $specs['type']);
 
         return $this;
     }
