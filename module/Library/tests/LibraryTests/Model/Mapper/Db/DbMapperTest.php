@@ -24,7 +24,7 @@ class DbMapperTest extends AbstractTest
     public function testCanMapDataToObject()
     {
         $tableMock = $this->getMockBuilder('\Library\Model\Db\AbstractTableGateway')
-            ->setConstructorArgs(array('test', self::$adapter))
+            ->setConstructorArgs(array(self::$adapter, 'test'))
             ->getMockForAbstractClass();
 
         $mock = $this->getMockBuilder('\Library\Model\Mapper\Db\AbstractMapper')
@@ -53,7 +53,7 @@ class DbMapperTest extends AbstractTest
     public function testCanJoinTablesAndMapObjects()
     {
         $testTableMock = $this->getMockBuilder('\Library\Model\Db\AbstractTableGateway')
-            ->setConstructorArgs(array('test', self::$adapter))
+            ->setConstructorArgs(array(self::$adapter, 'test'))
             ->getMockForAbstractClass();
 
         $baseMapper = new DbMockMapper($testTableMock);

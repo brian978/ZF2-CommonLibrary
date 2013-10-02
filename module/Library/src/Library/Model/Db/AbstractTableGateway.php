@@ -39,18 +39,22 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
     protected $logger;
 
     /**
+     * @var ResultProcessor
+     */
+    protected $processorPrototype;
+
+    /**
      * Constructor
      *
-     * @param string $table
      * @param AdapterInterface $adapter
-     * @param \Zend\Db\TableGateway\Feature\AbstractFeature|\Zend\Db\TableGateway\Feature\FeatureSet|\Zend\Db\TableGateway\Feature\AbstractFeature[] $features
+     * @param string $table
+     * @param mixed $features
      * @param ResultSetInterface $resultSetPrototype
-     * @param \Zend\Db\Sql\Sql $sql
      * @param Sql $sql
      */
     public function __construct(
-        $table = null,
         AdapterInterface $adapter,
+        $table = null,
         $features = null,
         ResultSetInterface $resultSetPrototype = null,
         Sql $sql = null
@@ -60,6 +64,31 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
         }
 
         parent::__construct($table, $adapter, $features, $resultSetPrototype, $sql);
+    }
+
+    /**
+     * @param \Library\Model\Db\ResultProcessor $processorPrototype
+     * @return AbstractTableGateway
+     */
+    public function setProcessorPrototype($processorPrototype)
+    {
+        $this->processorPrototype = $processorPrototype->setDataSource($this)
+            ->setMapper($this->getMapper())
+            ->setLogger($this->getLogger());
+
+        return $this;
+    }
+
+    /**
+     * @return \Library\Model\Db\ResultProcessor
+     */
+    public function getProcessorPrototype()
+    {
+        if (empty($this->processorPrototype)) {
+            $this->setProcessorPrototype(new ResultProcessor());
+        }
+
+        return $this->processorPrototype;
     }
 
     /**
@@ -152,6 +181,8 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
      */
     protected function executeSelect(Select $select)
     {
+        $this->getLogger()->debug($select->getSqlString($this->getAdapter()->getPlatform()));
+
         $resultSet    = parent::executeSelect($select);
         $this->select = null;
 
@@ -208,16 +239,28 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
      */
     public function findById($id)
     {
-        $select = $this->getSelect();
-        $result = $this->selectWith($select->where(array($this->table . '.id' => $id)));
-        $row    = $result->current();
+        $result    = null;
+        $select    = $this->getSelect()->where(array($this->table . '.id' => $id));
+        $processor = clone $this->getProcessorPrototype();
 
-        if (!empty($this->mapper)) {
-            return $this->getMapper()->populate($row->getArrayCopy());
+        $resultSet = $processor->setSelect($select)->getResultSet();
+
+        if ($resultSet->count() > 0) {
+            $result = $resultSet->current();
         }
 
-//        echo $select->getSqlString($this->getAdapter()->getPlatform());
+        return $result;
+    }
 
-        return $row->getArrayCopy();
+    /**
+     * @return ResultProcessor
+     */
+    public function fetch()
+    {
+        $resultSet = null;
+        $select    = $this->getSelect();
+        $processor = clone $this->getProcessorPrototype();
+
+        return $processor->setSelect($select);
     }
 }
