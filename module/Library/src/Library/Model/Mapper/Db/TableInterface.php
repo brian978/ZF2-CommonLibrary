@@ -31,8 +31,14 @@ interface TableInterface extends TableGatewayInterface
     public function enhanceSelect(TableInterface $rootDataSource, array $specs);
 
     /**
+     * Returns the name of the table
+     *
      * @return string
      */
     public function getTable();
 
+    /**
+     * @return Select
+     */
+    public function getSelect();
 }

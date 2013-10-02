@@ -9,6 +9,7 @@
 
 namespace Library\Model\Db;
 
+use Library\Log\DummyLogger;
 use Library\Model\Mapper\Db\AbstractMapper;
 use Library\Model\Mapper\Db\MapperInterface;
 use Library\Model\Mapper\Db\TableInterface;
@@ -18,6 +19,7 @@ use Zend\Db\Adapter\AdapterInterface;
 use Zend\Db\ResultSet\ResultSet;
 use Zend\Db\ResultSet\ResultSetInterface;
 use Zend\Db\Sql\Sql;
+use Zend\Log\LoggerInterface;
 
 abstract class AbstractTableGateway extends TableGateway implements TableInterface
 {
@@ -30,6 +32,11 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
      * @var AbstractMapper
      */
     protected $mapper;
+
+    /**
+     * @var LoggerInterface
+     */
+    protected $logger;
 
     /**
      * Constructor
@@ -73,6 +80,29 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
     }
 
     /**
+     * @return \Zend\Log\LoggerInterface
+     */
+    public function getLogger()
+    {
+        if (!$this->logger instanceof LoggerInterface) {
+            $this->logger = new DummyLogger();
+        }
+
+        return $this->logger;
+    }
+
+    /**
+     * @param \Zend\Log\LoggerInterface $logger
+     * @return $this
+     */
+    public function setLogger(LoggerInterface $logger)
+    {
+        $this->logger = $logger;
+
+        return $this;
+    }
+
+    /**
      * Select
      *
      * @param Where|\Closure|string|array $where
@@ -102,15 +132,35 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
     {
         if (empty($this->select)) {
             $this->select = $this->getSql()->select();
-            $this->getMapper()->prepareSelect();
+
+            // Gateway might not require a mapper
+            if (!empty($this->mapper)) {
+                $this->mapper->prepareSelect();
+            }
         }
 
         return $this->select;
     }
 
     /**
+     * Overwritten the method so we can reset the select after each execution
+     * to avoid making 2 consecutive selects that mix data from one another
+     *
+     * @param Select $select
+     * @return ResultSet
+     * @throws \RuntimeException
+     */
+    protected function executeSelect(Select $select)
+    {
+        $resultSet    = parent::executeSelect($select);
+        $this->select = null;
+
+        return $resultSet;
+    }
+
+    /**
      * Method is used to add the JOIN statements to the provided $select object
-     * The data represents the information on how to join the objects
+     * The $specs represents the information on how to join the objects
      *
      * @param TableInterface $rootDataSource
      * @param array $specs
@@ -160,9 +210,14 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
     {
         $select = $this->getSelect();
         $result = $this->selectWith($select->where(array($this->table . '.id' => $id)));
+        $row    = $result->current();
+
+        if (!empty($this->mapper)) {
+            return $this->getMapper()->populate($row->getArrayCopy());
+        }
 
 //        echo $select->getSqlString($this->getAdapter()->getPlatform());
 
-        return $this->getMapper()->populate($result->current()->getArrayCopy());
+        return $row->getArrayCopy();
     }
 }

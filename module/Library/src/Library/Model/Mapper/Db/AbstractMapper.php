@@ -16,6 +16,37 @@ use Zend\Db\Sql\Select;
 abstract class AbstractMapper extends StandardAbstractMapper implements MapperInterface
 {
     /**
+     * The map that will be used to populate the object
+     *
+     * The map may look something like this:
+     * array(
+     *      'id' => 'id',
+     *      'someFieldName' => 'entityField',
+     *      'joinedId' => array( // This would be the field that triggers the dispatch to another mapper
+     *          'mapper' => array(
+     *              'entityField2', // Field from the entity to put the result from the dispatched mapper
+     *              'Full\Qualified\Name\Of\Mapper',
+     *          ),
+     *          'dataSource' => array(
+     *              'table' => 'tableToJoin',
+     *              'type' => Select::JOIN_INNER,
+     *              'on' => array(
+     *                  'id' => 'id',
+     *              ),
+     *              'columns' => array(
+     *                  'testId' => 'id',
+     *                  'testField1' => 'field1',
+     *                  'testField2' => 'field2',
+     *              )
+     *          )
+     *      )
+     * )
+     *
+     * @var array
+     */
+    protected $map = array();
+
+    /**
      * @var TableInterface
      */
     protected $dataSource;
@@ -38,6 +69,7 @@ abstract class AbstractMapper extends StandardAbstractMapper implements MapperIn
      */
     public function __call($name, array $arguments)
     {
+        // Trying to call the method from the $dataSource object
         if (is_string($name) && is_callable(array($this->dataSource, $name))) {
             return call_user_func_array(array($this->dataSource, $name), $arguments);
         }
@@ -75,7 +107,8 @@ abstract class AbstractMapper extends StandardAbstractMapper implements MapperIn
     {
         foreach ($this->map as $field) {
 
-            // Checking if the field uses a mapper so we dispatch the join request to it
+            // Checking if the field uses a mapper so we know
+            // if we dispatch a join request to it
             if (is_array($field) && $this->useMapper($field)) {
 
                 // Selecting the baseMapper
@@ -86,8 +119,12 @@ abstract class AbstractMapper extends StandardAbstractMapper implements MapperIn
                     $baseMapper = $this;
                 }
 
-                $this->getMapperFromInfo($field)
-                    ->prepareSelect()
+                /** @var $mapper AbstractMapper */
+                $mapper = $this->getMapperFromInfo($field);
+
+                // We do it like this to keep code completion available
+                $mapper->prepareSelect()
+                    ->getDataSource()
                     ->enhanceSelect($baseMapper->getDataSource(), $field['dataSource']);
             }
         }
