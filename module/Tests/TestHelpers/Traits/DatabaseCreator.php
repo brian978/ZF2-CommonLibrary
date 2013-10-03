@@ -19,6 +19,11 @@ trait DatabaseCreator
     protected static $sqlitePaths = 'module/Tests/database';
 
     /**
+     * @var string
+     */
+    protected static $dbFile = '';
+
+    /**
      * @var \Zend\Db\Adapter\Adapter
      */
     protected static $adapter;
@@ -30,44 +35,62 @@ trait DatabaseCreator
 
     public static function tearDownAfterClass()
     {
-        self::destroyDb();
+        static::destroyDb();
     }
 
     protected static function createDb()
     {
-        $databaseFilePath = self::$sqlitePaths . '/database_mapper.db';
-
-        if (file_exists($databaseFilePath)) {
-            @unlink($databaseFilePath);
+        if (empty(static::$dbFile)) {
+            static::$dbFile = static::$sqlitePaths . '/database_mapper.db';
         }
 
         // Setting up the adapter
-        self::$adapter = new Adapter(
+        static::$adapter = new Adapter(
             array(
                 'driver' => 'Pdo_Sqlite',
-                'database' => $databaseFilePath
+                'database' => static::$dbFile
             )
         );
 
-        self::$adapter->query(
-            file_get_contents(self::$sqlitePaths . '/schema.sqlite.sql'),
-            Adapter::QUERY_MODE_EXECUTE
-        );
+        // This is just a failsafe check
+        if (!file_exists(static::$dbFile)) {
+            static::$adapter->query(
+                file_get_contents(static::$sqlitePaths . '/schema.sqlite.sql'),
+                Adapter::QUERY_MODE_EXECUTE
+            );
 
-        self::$adapter->query(
-            file_get_contents(self::$sqlitePaths . '/data.sqlite.sql'),
-            Adapter::QUERY_MODE_EXECUTE
-        );
+            // Inserting the data line by line
+            $handle = @fopen(static::$sqlitePaths . '/data.sqlite.sql', "r");
+            if ($handle) {
+                while (($buffer = fgets($handle, 4096)) !== false) {
+                    static::$adapter->query($buffer, Adapter::QUERY_MODE_EXECUTE);
+                }
+                fclose($handle);
+            }
+        }
     }
 
     protected static function destroyDb()
     {
         // Removing the test database (connection to db needs to be closed)
-        $connection = self::$adapter->getDriver()->getConnection();
-        while ($connection->isConnected() == true) {
-            $connection->disconnect();
+        if (static::$adapter !== null) {
+            $connection = static::$adapter->getDriver()->getConnection();
+            while ($connection->isConnected() == true) {
+                $connection->disconnect();
+            }
         }
 
-        @unlink(self::$sqlitePaths . '/database_mapper.db');
+        static::$adapter = null;
+
+        $tried   = 0;
+        $removed = false;
+        while ($removed == false) {
+            $tried++;
+            $removed = unlink(static::$dbFile);
+
+            if ($tried >= 5) {
+                break;
+            }
+        }
     }
 }

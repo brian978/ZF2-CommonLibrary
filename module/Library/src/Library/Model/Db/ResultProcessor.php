@@ -14,6 +14,8 @@ use Library\Model\Mapper\Db\AbstractMapper;
 use Library\Paginator\Adapter\DbSelect;
 use Zend\Db\ResultSet\ResultSet;
 use Zend\Db\Sql\Select;
+use Zend\EventManager\EventManager;
+use Zend\EventManager\EventManagerInterface;
 use Zend\Log\LoggerInterface;
 use Zend\Paginator\Paginator;
 
@@ -38,6 +40,37 @@ class ResultProcessor
      * @var LoggerInterface
      */
     protected $logger;
+
+    /**
+     * @var EventManager
+     */
+    protected $eventManager;
+
+    /**
+     * @param \Zend\EventManager\EventManagerInterface $eventManager
+     * @return $this
+     */
+    public function setEventManager(EventManagerInterface $eventManager)
+    {
+        $eventManager->setIdentifiers(
+            array(
+                __CLASS__,
+                get_called_class(),
+            )
+        );
+        $this->eventManager = $eventManager;
+
+        return $this;
+    }
+
+    public function getEventManager()
+    {
+        if (null === $this->eventManager) {
+            $this->setEventManager(new EventManager());
+        }
+
+        return $this->eventManager;
+    }
 
     /**
      * @param \Library\Model\Db\AbstractTableGateway $dataSource
@@ -126,7 +159,7 @@ class ResultProcessor
      */
     public function processResultSet(ResultSet $resultSet, $map = 'default')
     {
-        if($this->mapper === null) {
+        if ($this->mapper === null) {
             return $resultSet;
         }
 
@@ -154,15 +187,21 @@ class ResultProcessor
 
     /**
      * @param string $map
+     * @param null|\Zend\Db\Sql\Select $customSelect
      * @return null|ResultSet
      */
-    public function getResultSet($map = 'default')
+    public function getResultSet($map = 'default', Select $customSelect = null)
     {
         $resultSet = null;
+        $select    = $this->select;
+
+        if ($customSelect != null) {
+            $select = $customSelect;
+        }
 
         try {
             /** @var $resultSet ResultSet */
-            $resultSet = $this->getDataSource()->selectWith($this->select);
+            $resultSet = $this->getDataSource()->selectWith($select);
         } catch (\Exception $e) {
             $this->getLogger()->err('Select failed with message: ' . $e->getMessage());
         }
