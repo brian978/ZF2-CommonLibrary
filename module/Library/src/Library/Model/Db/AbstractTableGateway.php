@@ -181,7 +181,9 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
      */
     protected function executeSelect(Select $select)
     {
-        $this->getLogger()->debug($select->getSqlString($this->getAdapter()->getPlatform()));
+        $platform = clone $this->getAdapter()->getPlatform();
+
+        $this->getLogger()->debug($select->getSqlString($platform));
 
         $resultSet    = parent::executeSelect($select);
         $this->select = null;
@@ -245,7 +247,7 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
 
         $resultSet = $processor->setSelect($select)->getResultSet();
 
-        if ($resultSet->count() > 0) {
+        if ($resultSet !== null && $resultSet->count() > 0) {
             $result = $resultSet->current();
         }
 

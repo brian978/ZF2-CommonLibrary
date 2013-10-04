@@ -41,7 +41,7 @@ trait DatabaseCreator
     protected static function createDb()
     {
         if (empty(static::$dbFile)) {
-            static::$dbFile = static::$sqlitePaths . '/database_mapper.db';
+            static::$dbFile = static::$sqlitePaths . '/database_mapper.sq3';
         }
 
         // Setting up the adapter
@@ -53,21 +53,20 @@ trait DatabaseCreator
         );
 
         // This is just a failsafe check
-        if (!file_exists(static::$dbFile)) {
-            static::$adapter->query(
-                file_get_contents(static::$sqlitePaths . '/schema.sqlite.sql'),
-                Adapter::QUERY_MODE_EXECUTE
-            );
+        static::$adapter->query(
+            file_get_contents(static::$sqlitePaths . '/schema.sqlite.sql'),
+            Adapter::QUERY_MODE_EXECUTE
+        );
 
-            // Inserting the data line by line
-            $handle = @fopen(static::$sqlitePaths . '/data.sqlite.sql', "r");
-            if ($handle) {
-                while (($buffer = fgets($handle, 4096)) !== false) {
-                    static::$adapter->query($buffer, Adapter::QUERY_MODE_EXECUTE);
-                }
-                fclose($handle);
+        // Inserting the data line by line
+        $handle = @fopen(static::$sqlitePaths . '/data.sqlite.sql', "r");
+        if ($handle) {
+            while (($buffer = fgets($handle, 4096)) !== false) {
+                static::$adapter->query($buffer, Adapter::QUERY_MODE_EXECUTE);
             }
+            fclose($handle);
         }
+
     }
 
     protected static function destroyDb()
@@ -79,8 +78,6 @@ trait DatabaseCreator
                 $connection->disconnect();
             }
         }
-
-        static::$adapter = null;
 
         $tried   = 0;
         $removed = false;

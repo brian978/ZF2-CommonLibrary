@@ -27,8 +27,6 @@ class TableGatewayTest extends AbstractTest
         $entityObject = $tableMock->findById(2);
 
         $this->assertEquals(2, $entityObject['id']);
-
-        return $entityObject;
     }
 
     public function testGatewayCanReturnPaginator()
