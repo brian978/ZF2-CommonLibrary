@@ -34,6 +34,11 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
     protected $mapper;
 
     /**
+     * @var stdClass
+     */
+    protected $tableTracker;
+
+    /**
      * @var LoggerInterface
      */
     protected $logger;
@@ -72,8 +77,10 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
      */
     public function setProcessorPrototype($processorPrototype)
     {
-        $this->processorPrototype = $processorPrototype->setDataSource($this)
-            ->setMapper($this->getMapper())
+        $this->processorPrototype = $processorPrototype->setDataSource($this);
+
+        // Injecting the dependencies
+        $this->processorPrototype->setMapper($this->getMapper())
             ->setLogger($this->getLogger());
 
         return $this;
@@ -165,6 +172,8 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
             // Gateway might not require a mapper
             if (!empty($this->mapper)) {
                 $this->mapper->prepareSelect();
+
+//                $this->tableTracker->linkWith($this);
             }
         }
 
@@ -181,8 +190,8 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
      */
     protected function executeSelect(Select $select)
     {
+        // Need to clone the platform to avoid random opened connections (especially when testing)
         $platform = clone $this->getAdapter()->getPlatform();
-
         $this->getLogger()->debug($select->getSqlString($platform));
 
         $resultSet    = parent::executeSelect($select);

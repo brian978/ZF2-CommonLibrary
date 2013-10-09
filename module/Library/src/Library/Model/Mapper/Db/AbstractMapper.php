@@ -39,25 +39,9 @@ abstract class AbstractMapper extends StandardAbstractMapper implements MapperIn
     }
 
     /**
-     * @param string $name
-     * @param array $arguments
-     * @return mixed
-     * @throws \RuntimeException
-     */
-    public function __call($name, array $arguments)
-    {
-        // Trying to call the method from the $dataSource object
-        if (is_string($name) && is_callable(array($this->dataSource, $name))) {
-            return call_user_func_array(array($this->dataSource, $name), $arguments);
-        }
-
-        throw new \RuntimeException('Invalid method (' . $name . ') called');
-    }
-
-    /**
      * @param TableInterface $dataSource
      * @return AbstractMapper
-     * @return $this|\Library\Model\Mapper\DbMapperInterface
+     * @return \Library\Model\Mapper\Db\AbstractMapper
      */
     public function setDataSource(TableInterface $dataSource)
     {
@@ -78,7 +62,7 @@ abstract class AbstractMapper extends StandardAbstractMapper implements MapperIn
     /**
      * Makes sure that the select has been modified if necessary by all the mappers
      *
-     * @return AbstractMapper
+     * @return \Library\Model\Mapper\Db\AbstractMapper
      */
     public function prepareSelect()
     {

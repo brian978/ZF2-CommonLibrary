@@ -153,6 +153,9 @@ class ResultProcessor
     }
 
     /**
+     * The method can create either a resultSet with mapped entities or return a set of data
+     * like they are in the database (standard ResultSet)
+     *
      * @param ResultSet $resultSet
      * @param string $map
      * @return ResultSet
@@ -187,7 +190,7 @@ class ResultProcessor
 
     /**
      * @param string $map
-     * @param null|\Zend\Db\Sql\Select $customSelect
+     * @param null|\Zend\Db\Sql\Select $customSelect Used for processing forked selects (like for pagination)
      * @return null|ResultSet
      */
     public function getResultSet($map = 'default', Select $customSelect = null)

@@ -21,37 +21,9 @@ class DbMapperTest extends AbstractTest
 {
     use DatabaseCreator;
 
-    public function testCanMapDataToObject()
-    {
-        $tableMock = $this->getMockBuilder('\Library\Model\Db\AbstractTableGateway')
-            ->setConstructorArgs(array(self::$adapter, 'test'))
-            ->getMockForAbstractClass();
-
-        $mock = $this->getMockBuilder('\Library\Model\Mapper\Db\AbstractMapper')
-            ->setConstructorArgs(array($tableMock))
-            ->getMockForAbstractClass();
-
-        $entityObject = $mock->setEntityClass('\Tests\TestHelpers\Model\Entity\MockEntity')
-            ->setMap(array('id' => 'id', 'field1' => 'testField1'))
-            ->findById(1);
-
-        $this->assertEquals(1, $entityObject->getId());
-
-        return $entityObject;
-    }
-
-    /**
-     * @depends testCanMapDataToObject
-     *
-     * @param MockEntity $object
-     */
-    public function testCanMapDataToOtherFields(MockEntity $object)
-    {
-        $this->assertEquals('test1', $object->getTestField1());
-    }
-
     public function testCanJoinTablesAndMapObjects()
     {
+        /** @var $testTableMock \Library\Model\Db\AbstractTableGateway */
         $testTableMock = $this->getMockBuilder('\Library\Model\Db\AbstractTableGateway')
             ->setConstructorArgs(array(self::$adapter, 'test'))
             ->getMockForAbstractClass();
@@ -63,7 +35,7 @@ class DbMapperTest extends AbstractTest
         $mapper2->attachMapper(new DbMockMapper3(clone $testTableMock));
 
         /** @var $object MockEntity */
-        $object = $baseMapper->findById(1);
+        $object = $testTableMock->findById(1);
 
         $this->assertInstanceOf('\Tests\TestHelpers\Model\Entity\MockEntity', $object);
         $this->assertInstanceOf('\Tests\TestHelpers\Model\Entity\MockEntity', $object->getTestField2());

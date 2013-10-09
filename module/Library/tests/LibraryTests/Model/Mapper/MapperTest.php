@@ -16,13 +16,10 @@ use Tests\TestHelpers\Model\Mapper\MockMapper;
 use Tests\TestHelpers\Model\Mapper\MockMapper2;
 use Tests\TestHelpers\Model\Mapper\MockMapper3;
 use Tests\TestHelpers\Traits\AdapterTrait;
-use Tests\TestHelpers\Traits\DatabaseCreator;
 use Zend\Db\Adapter\Adapter;
 
 class MapperTest extends AbstractTest
 {
-    use DatabaseCreator;
-
     public function testCanMapAndLinkObjects()
     {
         $data = array(
