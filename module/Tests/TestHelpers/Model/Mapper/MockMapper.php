@@ -29,8 +29,10 @@ class MockMapper extends AbstractMapper
         'id' => 'id',
         'field1' => 'testField1',
         'joinedId' => array(
-            'testField2',
-            'Tests\TestHelpers\Model\Mapper\MockMapper2',
+            'mapper' => array(
+                'testField2',
+                'Tests\TestHelpers\Model\Mapper\MockMapper2',
+            )
         ),
     );
 }

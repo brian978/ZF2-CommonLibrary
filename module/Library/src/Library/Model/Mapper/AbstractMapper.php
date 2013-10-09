@@ -25,29 +25,7 @@ class AbstractMapper implements MapperInterface
     /**
      * The map that will be used to populate the object
      *
-     * The map may look something like this:
-     * array(
-     *      'id' => 'id',
-     *      'someFieldName' => 'entityField',
-     *      'joinedId' => array( // This would be the field that triggers the dispatch to another mapper
-     *          'entityField2', // Field from the entity to put the result from the dispatched mapper
-     *          'Full\Qualified\Name\Of\Mapper',
-     *      ),
-     * )
-     *
-     * OR
-     *
-     * array(
-     *      'mapName' => array(
-     *          'id' => 'id',
-     *          'someFieldName' => 'entityField',
-     *          'joinedId' => array( // This would be the field that triggers the dispatch to another mapper
-     *              'entityField2', // Field from the entity to put the result from the dispatched mapper
-     *              'Full\Qualified\Name\Of\Mapper',
-     *          ),
-     *      )
-     * )
-     *
+     * @see AbstractMapperMap.phps
      * @var array
      */
     protected $map = array();
@@ -63,8 +41,17 @@ class AbstractMapper implements MapperInterface
     protected $parentMapper = null;
 
     /**
+     * The array holds the associations between a method and a property
+     * It is used for both the setters and the getters
+     *
+     * @var array
+     */
+    protected $propertyToMethod = array();
+
+    /**
      * @param array $map
-     * @return AbstractDbMapper
+     *
+     * @return AbstractMapper
      */
     public function setMap(array $map)
     {
@@ -83,7 +70,8 @@ class AbstractMapper implements MapperInterface
 
     /**
      * @param string $entityClass
-     * @return AbstractDbMapper
+     *
+     * @return AbstractMapper
      */
     public function setEntityClass($entityClass)
     {
@@ -101,32 +89,44 @@ class AbstractMapper implements MapperInterface
     }
 
     /**
+     * @throws \RuntimeException
      * @return \Library\Model\Entity\AbstractEntity
      */
     public function createEntityObject()
     {
+        if (empty($this->entityClass)) {
+            throw new \RuntimeException('The class for the entity has not been set');
+        }
+
         return new $this->entityClass();
     }
 
     /**
      * @param string $property
+     *
      * @return mixed
      */
     protected function createSetterNameFromPropertyName($property)
     {
-        return preg_replace_callback(
-            '/_([a-z])/',
-            function ($string) {
-                return ucfirst($string);
-            },
-            'set' . ucfirst($property)
-        );
+        // Creating the association
+        if (!isset($this->propertyToMethod['setter'][$property])) {
+            $this->propertyToMethod['setter'][$property] = preg_replace_callback(
+                '/_([a-z])/',
+                function ($string) {
+                    return ucfirst($string);
+                },
+                'set' . ucfirst($property)
+            );
+        }
+
+        return $this->propertyToMethod['setter'][$property];
     }
 
     /**
      * The $propertyName are the options for a specific field
      *
      * @param $mappingInfo
+     *
      * @internal param $propertyName
      * @return bool
      */
@@ -134,7 +134,7 @@ class AbstractMapper implements MapperInterface
     {
         $result = false;
 
-        if (isset($mappingInfo[1]) || isset($mappingInfo['mapper'][1])) {
+        if (isset($mappingInfo['mapper'][1])) {
             $result = true;
         }
 
@@ -143,33 +143,35 @@ class AbstractMapper implements MapperInterface
 
     /**
      * @param array $mappingInfo
+     *
+     * @throws \RuntimeException
      * @return mixed
      */
     protected function getMethodNameFromInfo(array $mappingInfo)
     {
-        if (isset($mappingInfo['mapper'][1])) {
-            $method = $mappingInfo['mapper'][0];
-        } else {
-            $method = $mappingInfo[0];
+        if (!isset($mappingInfo['mapper'][0])) {
+            throw new \RuntimeException('Method name not found in mapper section from the map');
         }
 
-        return $method;
+        return $mappingInfo['mapper'][0];
     }
 
     /**
      * @param array $mappingInfo
-     * @throws MapperNotFoundException
+     *
+     * @throws \RuntimeException
+     * @throws Exception\MapperNotFoundException
      * @return AbstractMapper
      */
     protected function getMapperFromInfo(array $mappingInfo)
     {
-        if (isset($mappingInfo['mapper'][1])) {
-            $mapperClass = $mappingInfo['mapper'][1];
-        } else {
-            $mapperClass = $mappingInfo[1];
+        if (!isset($mappingInfo['mapper'][1])) {
+            throw new \RuntimeException('Mapper class not found in mapper section from the map');
         }
 
-        if(!isset($this->mappers[$mapperClass])) {
+        $mapperClass = $mappingInfo['mapper'][1];
+
+        if (!isset($this->mappers[$mapperClass])) {
             throw new MapperNotFoundException('The mapper "' . $mapperClass . '" was not attached.');
         }
 
@@ -233,8 +235,8 @@ class AbstractMapper implements MapperInterface
     /**
      * @param mixed $data
      * @param string $mapName
+     *
      * @throws Exception\WrongDataTypeException
-     * @throws \RuntimeException
      * @return EntityInterface
      */
     public function populate($data, $mapName = 'default')
@@ -246,18 +248,15 @@ class AbstractMapper implements MapperInterface
             throw new WrongDataTypeException($message);
         }
 
-        if (empty($this->entityClass)) {
-            throw new \RuntimeException('The class for the entity has not been set');
-        }
+        // Creating the object to use (may throw exception if no entity class is provided)
+        $object = $this->createEntityObject();
 
         // Selecting the map
-        if(isset($this->map[$mapName])) {
+        if (isset($this->map[$mapName])) {
             $selectedMap = $this->map[$mapName];
         } else {
             $selectedMap = $this->map;
         }
-
-        $object = $this->createEntityObject();
 
         // Populating the object
         foreach ($data as $key => $value) {
@@ -279,6 +278,7 @@ class AbstractMapper implements MapperInterface
      * IMPORTANT: this feature will not look for a specific instance, just a class name
      *
      * @param $mapperClass
+     *
      * @return AbstractMapper|null
      */
     public function getMapper($mapperClass)
@@ -304,6 +304,7 @@ class AbstractMapper implements MapperInterface
 
     /**
      * @param $mapperClass
+     *
      * @return bool
      */
     public function hasMapper($mapperClass)
@@ -317,6 +318,7 @@ class AbstractMapper implements MapperInterface
 
     /**
      * @param AbstractMapper $mapper
+     *
      * @return MapperInterface
      */
     public function attachMapper(AbstractMapper $mapper)
@@ -328,6 +330,7 @@ class AbstractMapper implements MapperInterface
 
     /**
      * @param AbstractMapper $mapper
+     *
      * @return MapperInterface
      */
     public function setParentMapper(AbstractMapper $mapper)

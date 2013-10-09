@@ -54,7 +54,7 @@ class MockEntity extends AbstractEntity
     }
 
     /**
-     * @return string
+     * @return mixed
      */
     public function getTestField2()
     {

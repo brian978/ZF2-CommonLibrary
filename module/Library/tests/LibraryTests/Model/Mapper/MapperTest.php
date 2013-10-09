@@ -10,6 +10,7 @@
 namespace LibraryTests\Model\Mapper;
 
 use Tests\TestHelpers\AbstractTest;
+use Tests\TestHelpers\Model\Entity\MockEntity;
 use Tests\TestHelpers\Model\Mapper\DefaultMockMapper;
 use Tests\TestHelpers\Model\Mapper\MockMapper;
 use Tests\TestHelpers\Model\Mapper\MockMapper2;
@@ -75,8 +76,9 @@ class MapperTest extends AbstractTest
             )
         );
 
-        $mapper = new MockMapper();
-        $mapper->attachMapper(new MockMapper2());
+        $mapper  = new MockMapper();
+        $mapper2 = new MockMapper2();
+        $mapper->attachMapper($mapper2);
 
         // Changing the default map to the desired one
         $mapper->setMap(
@@ -84,8 +86,10 @@ class MapperTest extends AbstractTest
                 'id' => 'id',
                 'field1' => 'testField1',
                 'entity2' => array(
-                    'testField2',
-                    'Tests\TestHelpers\Model\Mapper\MockMapper2',
+                    'mapper' => array(
+                        'testField2',
+                        'Tests\TestHelpers\Model\Mapper\MockMapper2',
+                    )
                 ),
             )
         );
@@ -98,15 +102,17 @@ class MapperTest extends AbstractTest
         $this->assertEquals('asdadsad', $object->getTestField1());
         $this->assertEquals('asdad', $object->getTestField2()->getTestField1());
 
-        return $mapper;
+        return array(array($mapper, $mapper2));
     }
 
     /**
-     * @depends testCanMapNestedArrayAndLinkObjects
+     * @depends      testCanMapNestedArrayAndLinkObjects
+     * @dataProvider testCanMapNestedArrayAndLinkObjects
      *
      * @param MockMapper $mapper
+     * @param MockMapper $mapper2
      */
-    public function testCanNestMultipleObjects($mapper)
+    public function testCanNestMultipleObjects($mapper, $mapper2)
     {
         $data = array(
             'id' => 1,
@@ -116,19 +122,21 @@ class MapperTest extends AbstractTest
                 'joinedField1' => 'asdad',
                 'entity2' => array(
                     'joinedId' => 3,
-                    'joinedField' => 'asdad12313',
+                    'joinedField' => '777712313',
                 )
             )
         );
 
         // Changing the map in the second mapper
-        $mapper2 = $mapper->getMapper('Tests\TestHelpers\Model\Mapper\MockMapper2')->setMap(
+        $mapper2->setMap(
             array(
                 'joinedId' => 'id',
                 'joinedField1' => 'testField1',
                 'entity2' => array(
-                    'testField2',
-                    'Tests\TestHelpers\Model\Mapper\MockMapper3',
+                    'mapper' => array(
+                        'testField2',
+                        'Tests\TestHelpers\Model\Mapper\MockMapper3',
+                    )
                 ),
             )
         );
@@ -136,9 +144,10 @@ class MapperTest extends AbstractTest
         // Attaching the mapper that will process the last map
         $mapper2->attachMapper(new MockMapper3());
 
+        /** @var $object MockEntity */
         $object = $mapper->populate($data);
 
-        $this->assertEquals('asdad12313', $object->getTestField2()->getTestField2()->getTestField1());
+        $this->assertEquals('777712313', $object->getTestField2()->getTestField2()->getTestField1());
     }
 
     /**
