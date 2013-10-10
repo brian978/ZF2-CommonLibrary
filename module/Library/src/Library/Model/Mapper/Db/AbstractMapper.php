@@ -33,9 +33,11 @@ abstract class AbstractMapper extends StandardAbstractMapper implements MapperIn
      * @param TableInterface $dataSource
      * @return \Library\Model\Mapper\Db\AbstractMapper
      */
-    public function __construct(TableInterface $dataSource)
+    public function __construct(TableInterface $dataSource = null)
     {
-        $this->setDataSource($dataSource);
+        if($dataSource !== null) {
+            $this->setDataSource($dataSource);
+        }
     }
 
     /**
@@ -46,7 +48,12 @@ abstract class AbstractMapper extends StandardAbstractMapper implements MapperIn
     public function setDataSource(TableInterface $dataSource)
     {
         $this->dataSource = $dataSource;
-        $this->dataSource->setMapper($this);
+
+        // To avoid a loop we only set the mapper it hasn't been set
+        // We do this because a mapper can be attached to a dataSource and vice-versa
+        if($this->dataSource->getMapper() !== $this) {
+            $this->dataSource->setMapper($this);
+        }
 
         return $this;
     }

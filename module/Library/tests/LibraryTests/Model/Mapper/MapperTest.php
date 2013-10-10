@@ -182,4 +182,34 @@ class MapperTest extends AbstractTest
         $this->assertInstanceOf('\Tests\TestHelpers\Model\Entity\MockEntity', current($object->getTestField2()));
         $this->assertCount(2, $object->getTestField2());
     }
+
+    public function testCanGetBaseMapper()
+    {
+        $mapper = new MockMapper();
+        $mapper2 = new MockMapper2();
+        $mapper3 = new MockMapper3();
+
+        $mapper->attachMapper($mapper2);
+        $mapper2->attachMapper($mapper3);
+
+        $this->assertEquals($mapper, $mapper2->getBaseMapper());
+    }
+
+    public function testCanGetBaseMapperAfterAttachedToAnotherMapper()
+    {
+        $mapper = new MockMapper();
+        $mapper2 = new MockMapper2();
+        $mapper3 = new MockMapper3();
+
+        $mapper2->attachMapper($mapper3);
+
+        // Getting the base mapper for $mapper3 just so it records mapper2 as a base
+        // This is used to test if it can handle the base mapper being attached to another mapper
+        $mapper3->getBaseMapper();
+
+        // Now we attach $mapper3's base to another mapper to see if $mapper3 reacts and reconfigures the base
+        $mapper->attachMapper($mapper2);
+
+        $this->assertEquals($mapper, $mapper3->getBaseMapper());
+    }
 }

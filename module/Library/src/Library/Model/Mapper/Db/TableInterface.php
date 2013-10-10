@@ -21,6 +21,11 @@ interface TableInterface extends TableGatewayInterface
     public function setMapper(MapperInterface $mapper);
 
     /**
+     * @return MapperInterface
+     */
+    public function getMapper();
+
+    /**
      * Method is used to add the JOIN statements to the provided $select object
      * The data represents the information on how to join the objects
      *

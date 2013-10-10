@@ -27,6 +27,30 @@ class TableGatewayTest extends AbstractTest
         $entityObject = $tableMock->findById(2);
 
         $this->assertEquals(2, $entityObject['id']);
+
+        return $tableMock;
+    }
+
+    /**
+     * @depends testCanFindByIdWithoutAMapper
+     *
+     * @param \Library\Model\Db\AbstractTableGateway $tableMock
+     */
+    public function testGatewayCanUseAttachedMapper($tableMock)
+    {
+        /** @var $mapperMock \Library\Model\Mapper\Db\AbstractMapper */
+        $mapperMock = $this->getMockBuilder('\Library\Model\Mapper\Db\AbstractMapper')
+            ->getMockForAbstractClass();
+
+        // Updating the map in the mapper
+        $mapperMock->setEntityClass('\Tests\TestHelpers\Model\Entity\MockEntity')
+            ->setMap(array('default' => array('id' => 'id', 'field1' => 'testField1')));
+
+        $tableMock->setMapper($mapperMock);
+
+        $entityObject = $tableMock->findById(2);
+
+        $this->assertEquals(2, $entityObject->getId());
     }
 
     public function testGatewayCanReturnPaginator()

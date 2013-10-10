@@ -41,6 +41,11 @@ class AbstractMapper implements MapperInterface
     protected $parentMapper = null;
 
     /**
+     * @var AbstractMapper
+     */
+    protected $baseMapper = null;
+
+    /**
      * The array holds the associations between a method and a property
      * It is used for both the setters and the getters
      *
@@ -319,10 +324,15 @@ class AbstractMapper implements MapperInterface
     /**
      * @param AbstractMapper $mapper
      *
+     * @throws \RuntimeException
      * @return MapperInterface
      */
     public function attachMapper(AbstractMapper $mapper)
     {
+        if ($mapper->getParentMapper() !== null && $mapper->getParentMapper() !== $this) {
+            throw new \RuntimeException('Cannot attach the mapper because it already has a parent');
+        }
+
         $this->mappers[get_class($mapper)] = $mapper->setParentMapper($this);
 
         return $this;
@@ -338,5 +348,35 @@ class AbstractMapper implements MapperInterface
         $this->parentMapper = $mapper;
 
         return $this;
+    }
+
+    /**
+     * @return \Library\Model\Mapper\AbstractMapper
+     */
+    public function getParentMapper()
+    {
+        return $this->parentMapper;
+    }
+
+    /**
+     * Returns the top most mapper
+     *
+     * @return \Library\Model\Mapper\AbstractMapper
+     */
+    public function getBaseMapper()
+    {
+        if ($this->baseMapper === null) {
+            $baseMapper = null;
+            $parentMapper = $this->getParentMapper();
+
+            while ($parentMapper !== null) {
+                $baseMapper = $parentMapper;
+                $parentMapper = $parentMapper->getParentMapper();
+            }
+
+            $this->baseMapper = $baseMapper;
+        }
+
+        return $this->baseMapper;
     }
 }

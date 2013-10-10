@@ -100,11 +100,24 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
 
     /**
      * @param \Library\Model\Mapper\Db\MapperInterface $mapper
-     * @return mixed
+     * @return $this
      */
     public function setMapper(MapperInterface $mapper)
     {
         $this->mapper = $mapper;
+
+        // Updating the dependencies of the other objects
+        if (!empty($this->processorPrototype)) {
+            $this->processorPrototype->setMapper($this->mapper);
+        }
+
+        // To avoid a loop we only set the dataSource it hasn't been set
+        // We do this because a dataSource can be attached to a mapper and vice-versa
+        if ($this->mapper->getDataSource() !== $this) {
+            $this->mapper->setDataSource($this);
+        }
+
+        return $this;
     }
 
     /**
@@ -135,13 +148,18 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
     {
         $this->logger = $logger;
 
+        // Updating the dependencies of the other objects
+        if (!empty($this->processorPrototype)) {
+            $this->processorPrototype->setLogger($this->logger);
+        }
+
         return $this;
     }
 
     /**
      * Select
      *
-     * @param Where|\Closure|string|array $where
+     * @param \Zend\Db\Sql\Where|\Closure|string|array $where
      * @return ResultSet
      */
     public function select($where = null)
@@ -172,7 +190,6 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
             // Gateway might not require a mapper
             if (!empty($this->mapper)) {
                 $this->mapper->prepareSelect();
-
 //                $this->tableTracker->linkWith($this);
             }
         }

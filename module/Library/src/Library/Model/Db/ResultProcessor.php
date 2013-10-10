@@ -92,7 +92,7 @@ class ResultProcessor
     }
 
     /**
-     * @param \Library\Model\Mapper\Db\AbstractMapper $mapper
+     * @param \Library\Model\Mapper\Db\MapperInterface $mapper
      * @return ResultProcessor
      */
     public function setMapper($mapper)
@@ -103,7 +103,7 @@ class ResultProcessor
     }
 
     /**
-     * @return \Library\Model\Mapper\Db\AbstractMapper
+     * @return \Library\Model\Mapper\Db\MapperInterface
      */
     public function getMapper()
     {
