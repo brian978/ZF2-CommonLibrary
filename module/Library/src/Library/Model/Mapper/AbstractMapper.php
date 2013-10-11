@@ -15,6 +15,9 @@ use Library\Model\Mapper\Exception\WrongDataTypeException;
 
 class AbstractMapper implements MapperInterface
 {
+    // Notification codes
+    const NOTIFY_BASE_CHANGED = 100;
+
     /**
      * Class name of the entity that the data will be mapped to
      *
@@ -322,6 +325,30 @@ class AbstractMapper implements MapperInterface
     }
 
     /**
+     * The method is used to receive a notification from another mapper
+     *
+     * @param $notificationCode
+     * @param array $params
+     * @return $this
+     */
+    public function notify($notificationCode, array $params = array())
+    {
+        switch ($notificationCode) {
+            case self::NOTIFY_BASE_CHANGED:
+                $this->baseMapper = $params['baseMapper'];
+                break;
+        }
+
+        // Propagating the notification to the other child mappers
+        /** @var $mapper AbstractMapper */
+        foreach($this->mappers as $mapper) {
+            $mapper->notify($notificationCode, $params);
+        }
+
+        return $this;
+    }
+
+    /**
      * @param AbstractMapper $mapper
      *
      * @throws \RuntimeException
@@ -334,6 +361,9 @@ class AbstractMapper implements MapperInterface
         }
 
         $this->mappers[get_class($mapper)] = $mapper->setParentMapper($this);
+
+        // Sending a notification to the mapper telling it there is a new base mapper
+        $mapper->notify(self::NOTIFY_BASE_CHANGED, array('baseMapper' => $this));
 
         return $this;
     }
@@ -359,22 +389,22 @@ class AbstractMapper implements MapperInterface
     }
 
     /**
-     * Returns the top most mapper
+     * Returns the top most mapper and cascading the response
+     * to make sure that all the mappers know which one is the base
      *
      * @return \Library\Model\Mapper\AbstractMapper
      */
     public function getBaseMapper()
     {
         if ($this->baseMapper === null) {
-            $baseMapper = null;
             $parentMapper = $this->getParentMapper();
 
-            while ($parentMapper !== null) {
-                $baseMapper = $parentMapper;
-                $parentMapper = $parentMapper->getParentMapper();
+            if($parentMapper === null) {
+                $this->baseMapper = $this;
+                return $this->baseMapper;
             }
 
-            $this->baseMapper = $baseMapper;
+            $this->baseMapper = $parentMapper->getBaseMapper();
         }
 
         return $this->baseMapper;

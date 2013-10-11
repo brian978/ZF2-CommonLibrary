@@ -1,7 +1,6 @@
 <?php
 
 // Map layouts for the database mapper
-
 array(
    'id' => 'id',
    'someFieldName' => 'entityField',

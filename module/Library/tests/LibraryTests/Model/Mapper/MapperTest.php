@@ -195,6 +195,16 @@ class MapperTest extends AbstractTest
         $this->assertEquals($mapper, $mapper2->getBaseMapper());
     }
 
+    public function testCanReturnSelfAsBaseMapper()
+    {
+        $mapper = new MockMapper();
+        $mapper2 = new MockMapper2();
+
+        $mapper->attachMapper($mapper2);
+
+        $this->assertEquals($mapper, $mapper->getBaseMapper());
+    }
+
     public function testCanGetBaseMapperAfterAttachedToAnotherMapper()
     {
         $mapper = new MockMapper();
@@ -208,8 +218,8 @@ class MapperTest extends AbstractTest
         $mapper3->getBaseMapper();
 
         // Now we attach $mapper3's base to another mapper to see if $mapper3 reacts and reconfigures the base
-//        $mapper->attachMapper($mapper2);
+        $mapper->attachMapper($mapper2);
 
-        $this->assertEquals($mapper2, $mapper3->getBaseMapper());
+        $this->assertEquals($mapper, $mapper3->getBaseMapper());
     }
 }

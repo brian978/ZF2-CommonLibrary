@@ -14,24 +14,44 @@ use Library\Model\Mapper\Db\TableInterface;
 class GatewayTracker
 {
     /**
+     * An array of tracked TableInterface objects
+     *
      * @var array
      */
-    protected $trackedGateways = array();
+    protected $gateways = array();
 
     /**
-     * @var bool
+     * @param TableInterface $gateway
+     * @throws \InvalidArgumentException
+     * @return $this
      */
-    protected $trackingCompleted = false;
-
-    /**
-     * @return bool
-     */
-    public function isTrackingCompleted()
+    public function track(TableInterface $gateway)
     {
-        return $this->trackingCompleted;
+        $tableName = $gateway->getTable();
+
+        if (!isset($this->gateways[$tableName])) {
+            $this->gateways[$tableName] = $gateway;
+        } elseif ($this->gateways[$tableName] !== $gateway) {
+            throw new \InvalidArgumentException('The table is tracked using another gateway.');
+        }
+
+        return $this;
     }
 
-    public function track($tableName, TableInterface $gateway)
+    /**
+     * @param $table
+     * @return TableInterface
+     * @throws \RuntimeException
+     */
+    public function getGateway($table)
     {
+        /** @var $object TableInterface */
+        foreach ($this->gateways as $tableName => $object) {
+            if ($tableName === $table) {
+                return $object;
+            }
+        }
+
+        throw new \RuntimeException('A gateway for the requested table was not found');
     }
 }

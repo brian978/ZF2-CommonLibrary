@@ -1,7 +1,6 @@
 <?php
 
 // Map layouts for the standard mapper
-
 array(
     'mapName' => array(
         'id' => 'id',
