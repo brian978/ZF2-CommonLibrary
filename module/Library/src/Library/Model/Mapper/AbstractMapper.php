@@ -360,10 +360,12 @@ class AbstractMapper implements MapperInterface
             throw new \RuntimeException('Cannot attach the mapper because it already has a parent');
         }
 
-        $this->mappers[get_class($mapper)] = $mapper->setParentMapper($this);
+        // Sending a notification to the current base mapper telling it there is a new base mapper
+        if($mapper->getParentMapper() === null) {
+            $mapper->notify(self::NOTIFY_BASE_CHANGED, array('baseMapper' => $this));
+        }
 
-        // Sending a notification to the mapper telling it there is a new base mapper
-        $mapper->notify(self::NOTIFY_BASE_CHANGED, array('baseMapper' => $this));
+        $this->mappers[get_class($mapper)] = $mapper->setParentMapper($this);
 
         return $this;
     }
