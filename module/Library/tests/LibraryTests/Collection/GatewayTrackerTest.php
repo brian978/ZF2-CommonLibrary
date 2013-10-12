@@ -7,9 +7,9 @@
  * @license   Creative Commons Attribution-ShareAlike 3.0
  */
 
-namespace LibraryTests\Db;
+namespace LibraryTests\Collection;
 
-use Library\Model\Db\GatewayTracker;
+use Library\Collection\GatewayTracker;
 use Tests\TestHelpers\AbstractTest;
 use Tests\TestHelpers\Db\TableGateway;
 use Tests\TestHelpers\Traits\DatabaseCreator;

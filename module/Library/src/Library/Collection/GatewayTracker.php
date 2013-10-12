@@ -7,19 +7,12 @@
  * @license   Creative Commons Attribution-ShareAlike 3.0
  */
 
-namespace Library\Model\Db;
+namespace Library\Collection;
 
 use Library\Model\Mapper\Db\TableInterface;
 
-class GatewayTracker
+class GatewayTracker extends AbstractCollection
 {
-    /**
-     * An array of tracked TableInterface objects
-     *
-     * @var array
-     */
-    protected $gateways = array();
-
     /**
      * @param TableInterface $gateway
      * @throws \InvalidArgumentException
@@ -29,9 +22,9 @@ class GatewayTracker
     {
         $tableName = $gateway->getTable();
 
-        if (!isset($this->gateways[$tableName])) {
-            $this->gateways[$tableName] = $gateway;
-        } elseif ($this->gateways[$tableName] !== $gateway) {
+        if (!isset($this->collection[$tableName])) {
+            $this->collection[$tableName] = $gateway;
+        } elseif ($this->collection[$tableName] !== $gateway) {
             throw new \InvalidArgumentException('The table is tracked using another gateway.');
         }
 
@@ -46,7 +39,7 @@ class GatewayTracker
     public function getGateway($table)
     {
         /** @var $object TableInterface */
-        foreach ($this->gateways as $tableName => $object) {
+        foreach ($this->collection as $tableName => $object) {
             if ($tableName === $table) {
                 return $object;
             }
