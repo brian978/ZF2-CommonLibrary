@@ -7,7 +7,7 @@
  * @license   Creative Commons Attribution-ShareAlike 3.0
  */
 
-namespace LibraryTests\Db;
+namespace LibraryTests\Model\Db;
 
 use Tests\TestHelpers\AbstractTest;
 use Tests\TestHelpers\Traits\DatabaseCreator;
@@ -75,12 +75,12 @@ class TableGatewayTest extends AbstractTest
         // Changing the map in the paginator
         $object->getEventManager()->attach(
             'changePaginatorMap',
-            function (Event $e) {
-                $params = $e->getParams();
-                $map    = & $params['map'];
-                $map    = 'test';
-
-                return $map;
+            function (Event $e) use ($tableMock) {
+                if ($e->getTarget()->getProcessor()->getDataSource() === $tableMock) {
+                    $params = $e->getParams();
+                    $map    = & $params['map'];
+                    $map    = 'test';
+                }
             }
         );
 

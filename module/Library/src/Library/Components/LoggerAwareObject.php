@@ -7,7 +7,7 @@
  * @license   Creative Commons Attribution-ShareAlike 3.0
  */
 
-namespace Library\Form\Components;
+namespace Library\Components;
 
 use Library\Log\DummyLogger;
 use Zend\Log\LoggerInterface;

@@ -7,7 +7,7 @@
  * @license   Creative Commons Attribution-ShareAlike 3.0
  */
 
-namespace Library\Form\Components;
+namespace Library\Components;
 
 use Zend\I18n\Translator\Translator;
 

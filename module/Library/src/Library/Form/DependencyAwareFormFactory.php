@@ -40,7 +40,7 @@ class DependencyAwareFormFactory extends ZendFormFactory
      * type is being requested; if none is provided, assumes the spec
      * represents simply an element.
      *
-     * @param  array|Traversable $spec
+     * @param  array|\Traversable $spec
      *
      * @throws \RuntimeException
      * @return \Zend\Form\ElementInterface

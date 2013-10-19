@@ -9,9 +9,9 @@
 
 namespace Library\Form\Fieldset;
 
-use Library\Form\Components\LoggerAwareObject;
-use Library\Form\Components\ServiceLocatorAwareObject;
-use Library\Form\Components\TranslatorAwareObject;
+use Library\Components\LoggerAwareObject;
+use Library\Components\ServiceLocatorAwareObject;
+use Library\Components\TranslatorAwareObject;
 use Zend\Form\Fieldset;
 use Zend\I18n\Translator\Translator;
 use Zend\I18n\Translator\TranslatorAwareInterface;

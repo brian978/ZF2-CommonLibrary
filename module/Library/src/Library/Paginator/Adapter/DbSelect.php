@@ -52,15 +52,18 @@ class DbSelect extends ZendDbSelect
         $select->limit($itemCountPerPage);
 
         if ($this->processor !== null) {
-
-            // Setting the map to use for processing the result set
             $map = 'default';
-            $this->getProcessor()
-                ->getEventManager()
+
+            // Shallow copy only (we need to rest of the objects to remain the same
+            $processor = clone $this->processor;
+            $processor->setSelect($select);
+
+            // Updating the map
+            $processor->getEventManager()
                 ->trigger('changePaginatorMap', $this, array('map' => &$map));
 
             // Getting the result set
-            $resultSet = $this->getProcessor()->getResultSet($map, $select);
+            $resultSet = $processor->getResultSet($map, $select);
         } else {
             $statement = $this->sql->prepareStatementForSqlObject($select);
             $result    = $statement->execute();

@@ -12,6 +12,7 @@ namespace Library\Model\Db;
 use Library\Log\DummyLogger;
 use Library\Model\Mapper\Db\AbstractMapper;
 use Library\Paginator\Adapter\DbSelect;
+use Zend\Cache\Pattern\ObjectCache;
 use Zend\Db\ResultSet\ResultSet;
 use Zend\Db\Sql\Select;
 use Zend\EventManager\EventManager;
@@ -45,6 +46,11 @@ class ResultProcessor
      * @var EventManager
      */
     protected $eventManager;
+
+    /**
+     * @var ObjectCache
+     */
+    protected $cache;
 
     /**
      * @param \Zend\EventManager\EventManagerInterface $eventManager
@@ -153,6 +159,38 @@ class ResultProcessor
     }
 
     /**
+     * @param \Zend\Cache\Pattern\ObjectCache $cache
+     * @return ResultProcessor
+     */
+    public function setCache(ObjectCache $cache)
+    {
+        $this->cache = $cache;
+
+        // Updating the cached object (might already be set to the proper one)
+        $this->cache->getOptions()->setObject($this);
+
+        return $this;
+    }
+
+    /**
+     * @return \Zend\Cache\Pattern\ObjectCache
+     */
+    public function getCache()
+    {
+        return $this->cache;
+    }
+
+    /**
+     * This is just a proxy method to facilitate the auto-complete
+     *
+     * @return ResultProcessor
+     */
+    public function cache()
+    {
+        return $this->getCache();
+    }
+
+    /**
      * The method can create either a resultSet with mapped entities or return a set of data
      * like they are in the database (standard ResultSet)
      *
@@ -190,21 +228,15 @@ class ResultProcessor
 
     /**
      * @param string $map
-     * @param null|\Zend\Db\Sql\Select $customSelect Used for processing forked selects (like for pagination)
      * @return null|ResultSet
      */
-    public function getResultSet($map = 'default', Select $customSelect = null)
+    public function getResultSet($map = 'default')
     {
         $resultSet = null;
-        $select    = $this->select;
-
-        if ($customSelect != null) {
-            $select = $customSelect;
-        }
 
         try {
             /** @var $resultSet ResultSet */
-            $resultSet = $this->getDataSource()->selectWith($select);
+            $resultSet = $this->getDataSource()->selectWith($this->select);
         } catch (\Exception $e) {
             $this->getLogger()->err('Select failed with message: ' . $e->getMessage());
         }
