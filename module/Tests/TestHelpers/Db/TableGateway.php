@@ -9,9 +9,9 @@
 
 namespace Tests\TestHelpers\Db;
 
-use Library\Model\Db\AbstractTableGateway;
+use Library\Model\Db\TableGateway as LibraryTableGateway;
 
-class TableGateway extends AbstractTableGateway
+class TableGateway extends LibraryTableGateway
 {
 
 }

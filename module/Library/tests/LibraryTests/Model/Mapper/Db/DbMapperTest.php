@@ -9,6 +9,7 @@
 
 namespace LibraryTests\Model\Mapper\Db;
 
+use Library\Model\Db\TableGateway;
 use Tests\TestHelpers\AbstractTest;
 use Tests\TestHelpers\Model\Entity\MockEntity;
 use Tests\TestHelpers\Model\Mapper\Db\DbMockMapper;
@@ -23,10 +24,7 @@ class DbMapperTest extends AbstractTest
 
     public function testCanJoinTablesAndMapObjects()
     {
-        /** @var $testTableMock \Library\Model\Db\AbstractTableGateway */
-        $testTableMock = $this->getMockBuilder('\Library\Model\Db\AbstractTableGateway')
-            ->setConstructorArgs(array(self::$adapter, 'test'))
-            ->getMockForAbstractClass();
+        $testTableMock = new TableGateway(self::$adapter, 'test');
 
         $baseMapper = new DbMockMapper($testTableMock);
         $mapper2    = new DbMockMapper2(clone $testTableMock);

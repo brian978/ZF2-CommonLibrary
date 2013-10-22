@@ -9,6 +9,7 @@
 
 namespace LibraryTests\Model\Db;
 
+use Library\Model\Db\TableGateway;
 use Tests\TestHelpers\AbstractTest;
 use Tests\TestHelpers\Traits\DatabaseCreator;
 use Zend\EventManager\Event;
@@ -19,22 +20,18 @@ class TableGatewayTest extends AbstractTest
 
     public function testCanFindByIdWithoutAMapper()
     {
-        /** @var $tableMock \Library\Model\Db\AbstractTableGateway */
-        $tableMock = $this->getMockBuilder('\Library\Model\Db\AbstractTableGateway')
-            ->setConstructorArgs(array(self::$adapter, 'test'))
-            ->getMockForAbstractClass();
-
-        $entityObject = $tableMock->findById(2);
+        $table = new TableGateway(self::$adapter, 'test');
+        $entityObject = $table->findById(2);
 
         $this->assertEquals(2, $entityObject['id']);
 
-        return $tableMock;
+        return $table;
     }
 
     /**
      * @depends testCanFindByIdWithoutAMapper
      *
-     * @param \Library\Model\Db\AbstractTableGateway $tableMock
+     * @param \Library\Model\Db\TableGateway $tableMock
      */
     public function testGatewayCanUseAttachedMapper($tableMock)
     {
@@ -55,10 +52,7 @@ class TableGatewayTest extends AbstractTest
 
     public function testGatewayCanReturnPaginator()
     {
-        /** @var $tableMock \Library\Model\Db\AbstractTableGateway */
-        $tableMock = $this->getMockBuilder('\Library\Model\Db\AbstractTableGateway')
-            ->setConstructorArgs(array(self::$adapter, 'test'))
-            ->getMockForAbstractClass();
+        $tableMock = new TableGateway(self::$adapter, 'test');
 
         /** @var $mapperMock \Library\Model\Mapper\Db\AbstractMapper */
         $mapperMock = $this->getMockBuilder('\Library\Model\Mapper\Db\AbstractMapper')
@@ -100,14 +94,11 @@ class TableGatewayTest extends AbstractTest
 
     public function testGatewayCanReturnResultSet()
     {
-        /** @var $tableMock \Library\Model\Db\AbstractTableGateway */
-        $tableMock = $this->getMockBuilder('\Library\Model\Db\AbstractTableGateway')
-            ->setConstructorArgs(array(self::$adapter, 'test'))
-            ->getMockForAbstractClass();
+        $table = new TableGateway(self::$adapter, 'test');
 
         /** @var $mapperMock \Library\Model\Mapper\Db\AbstractMapper */
         $mapperMock = $this->getMockBuilder('\Library\Model\Mapper\Db\AbstractMapper')
-            ->setConstructorArgs(array($tableMock))
+            ->setConstructorArgs(array($table))
             ->getMockForAbstractClass();
 
         // Updating the map in the mapper
@@ -115,9 +106,16 @@ class TableGatewayTest extends AbstractTest
             ->setMap(array('id' => 'id', 'field1' => 'testField1'));
 
         /** @var $object \Zend\Db\ResultSet\ResultSet */
-        $object = $tableMock->fetch()->getResultSet();
+        $object = $table->fetch()->getResultSet();
 
         $this->assertInstanceOf('\Zend\Db\ResultSet\ResultSet', $object);
         $this->assertEquals(2, $object->count());
+    }
+
+    public function testTableGatewayCanCacheMethods()
+    {
+        $table = new TableGateway(self::$adapter, 'test');
+
+        $this->assertEquals(1, $table->cache()->dummyMethod());
     }
 }

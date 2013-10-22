@@ -15,9 +15,6 @@ use Library\Model\Mapper\Db\AbstractMapper;
 use Library\Model\Mapper\Db\MapperInterface;
 use Library\Model\Mapper\Db\TableInterface;
 use Zend\Cache\Pattern\ObjectCache;
-use Zend\Cache\PatternFactory;
-use Zend\Cache\Storage\Adapter\Memory as MemoryCache;
-use Zend\Cache\Storage\Plugin\ClearExpiredByFactor;
 use Zend\Db\Sql\Select;
 use Zend\Db\TableGateway\TableGateway;
 use Zend\Db\Adapter\AdapterInterface;
@@ -25,7 +22,6 @@ use Zend\Db\ResultSet\ResultSet;
 use Zend\Db\ResultSet\ResultSetInterface;
 use Zend\Db\Sql\Sql;
 use Zend\Log\LoggerInterface;
-use Zend\Cache\Storage\Adapter\Filesystem as FilesystemCache;
 
 abstract class AbstractTableGateway extends TableGateway implements TableInterface
 {
@@ -60,6 +56,21 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
     protected $cache;
 
     /**
+     * @return ObjectCache
+     */
+    abstract public function getCache();
+
+    /**
+     * This is just a proxy method to facilitate the auto-complete
+     * (quite useless to require this method in all the gateways but it helps with auto-completion)
+     *
+     * Should this be implemented in abstract?
+     *
+     * @return AbstractTableGateway
+     */
+    abstract public function cache();
+
+    /**
      * Constructor
      *
      * @param AdapterInterface $adapter
@@ -83,46 +94,6 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
     }
 
     /**
-     * @return ObjectCache
-     */
-    public function getCache()
-    {
-        if (empty($this->cache)) {
-            $plugin = new ClearExpiredByFactor();
-            $plugin->getOptions()->setClearingFactor(1);
-
-            $cacheStorage = new FilesystemCache(array(
-                'cache_dir' => 'module/Tests/caches',
-                'ttl' => 10,
-            ));
-
-//            $cacheStorage = new MemoryCache();
-            $cacheStorage->addPlugin($plugin);
-
-            $this->cache = PatternFactory::factory(
-                'object',
-                array(
-                    'object' => $this,
-                    'storage' => $cacheStorage,
-                    'cache_output' => false,
-                )
-            );
-        }
-
-        return $this->cache;
-    }
-
-    /**
-     * This is just a proxy method to facilitate the auto-complete
-     *
-     * @return AbstractTableGateway
-     */
-    public function cache()
-    {
-        return $this->getCache();
-    }
-
-    /**
      * @param \Library\Model\Db\ResultProcessor $processorPrototype
      * @return AbstractTableGateway
      */
@@ -133,8 +104,12 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
         // Injecting the dependencies
         $this->processorPrototype
             ->setMapper($this->getMapper())
-            ->setLogger($this->getLogger())
-            ->setCache(clone $this->getCache());
+            ->setLogger($this->getLogger());
+
+        // This may not always be set (like when unit testing using the abstract directly)
+        if ($this->getCache() !== null) {
+            $this->processorPrototype->setCache(clone $this->getCache());
+        }
 
         return $this;
     }

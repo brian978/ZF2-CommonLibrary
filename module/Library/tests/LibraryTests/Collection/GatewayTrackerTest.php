@@ -10,8 +10,8 @@
 namespace LibraryTests\Collection;
 
 use Library\Collection\GatewayTracker;
+use Library\Model\Db\TableGateway;
 use Tests\TestHelpers\AbstractTest;
-use Tests\TestHelpers\Db\TableGateway;
 use Tests\TestHelpers\Traits\DatabaseCreator;
 
 class GatewayTrackerTest extends AbstractTest
