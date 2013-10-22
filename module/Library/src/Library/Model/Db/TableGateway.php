@@ -10,9 +10,6 @@
 namespace Library\Model\Db;
 
 use Zend\Cache\Pattern\ObjectCache;
-use Zend\Cache\PatternFactory;
-use Zend\Cache\Storage\Plugin\ClearExpiredByFactor;
-use Zend\Cache\Storage\Adapter\Filesystem as FilesystemCache;
 
 class TableGateway extends AbstractTableGateway
 {
@@ -21,29 +18,6 @@ class TableGateway extends AbstractTableGateway
      */
     public function getCache()
     {
-        if (empty($this->cache)) {
-            $plugin = new ClearExpiredByFactor();
-            $plugin->getOptions()->setClearingFactor(3);
-
-            // Cache storage setup
-            $cacheStorage = new FilesystemCache(array(
-                'cache_dir' => 'module/Tests/caches',
-                'ttl' => 10,
-            ));
-
-            $cacheStorage->addPlugin($plugin);
-
-            $this->cache = PatternFactory::factory(
-                'object',
-                array(
-                    'object' => $this,
-                    'storage' => $cacheStorage,
-                    'cache_output' => false,
-                    'cache_by_default' => true,
-                )
-            );
-        }
-
         return $this->cache;
     }
 

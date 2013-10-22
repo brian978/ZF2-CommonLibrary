@@ -94,6 +94,41 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
     }
 
     /**
+     * @param ObjectCache $cache
+     * @return ObjectCache
+     */
+    protected function getCacheClone(ObjectCache $cache)
+    {
+        $cacheOptions = clone $cache->getOptions();
+        $newCache = clone $cache;
+
+        // Updating the cache options in the $newCache
+        $newCache->setOptions($cacheOptions);
+
+        return $newCache;
+    }
+
+    /**
+     * //TODO: find better way to set the object cache
+     *
+     * @param ObjectCache $cache
+     * @return $this
+     */
+    public function setCache(ObjectCache $cache)
+    {
+        // Updating the cache object
+        $cache->getOptions()->setObject($this);
+
+        // Setting the result processor cache
+        // (needs to be done before setting the cache to prevent setting it twice when no cache is set)
+        $this->getProcessorPrototype()->setCache($this->getCacheClone($cache));
+
+        $this->cache = $cache;
+
+        return $this;
+    }
+
+    /**
      * @param \Library\Model\Db\ResultProcessor $processorPrototype
      * @return AbstractTableGateway
      */
@@ -108,7 +143,7 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
 
         // This may not always be set (like when unit testing using the abstract directly)
         if ($this->getCache() !== null) {
-            $this->processorPrototype->setCache(clone $this->getCache());
+            $this->processorPrototype->setCache($this->getCacheClone($this->cache));
         }
 
         return $this;
@@ -215,10 +250,9 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
         if (empty($this->select)) {
             $this->select = $this->getSql()->select();
 
-            // Gateway might not require a mapper
+            // The gateway might not require a mapper
             if (!empty($this->mapper)) {
                 $this->mapper->prepareSelect();
-//                $this->tableTracker->linkWith($this);
             }
         }
 

@@ -12,8 +12,13 @@ namespace Library;
 use Library\Form\Factory;
 use Zend\ModuleManager\Feature\AutoloaderProviderInterface;
 use Zend\ModuleManager\Feature\ConfigProviderInterface;
+use Zend\ModuleManager\Feature\ServiceProviderInterface;
+use Zend\ServiceManager\ServiceManager;
+use Zend\Cache\PatternFactory;
+use Zend\Cache\Storage\Plugin\ClearExpiredByFactor;
+use Zend\Cache\Storage\Adapter\Filesystem as FilesystemCache;
 
-class Module implements ConfigProviderInterface, AutoloaderProviderInterface
+class Module implements ConfigProviderInterface, AutoloaderProviderInterface, ServiceProviderInterface
 {
     /**
      * @var string
@@ -48,6 +53,44 @@ class Module implements ConfigProviderInterface, AutoloaderProviderInterface
                     $this->moduleNamespace => $this->moduleDir . '/src/' . $this->moduleNamespace,
                 ),
             ),
+        );
+    }
+
+    /**
+     * Expected to return \Zend\ServiceManager\Config object or array to
+     * seed such an object.
+     *
+     * @return array|\Zend\ServiceManager\Config
+     */
+    public function getServiceConfig()
+    {
+        return array(
+            'factories' => array(
+                'Zend\Cache' => function (ServiceManager $sm) {
+                    $plugin = new ClearExpiredByFactor();
+                    $plugin->getOptions()->setClearingFactor(3);
+
+                    // Cache storage setup
+                    $cacheStorage = new FilesystemCache(array(
+                        'cache_dir' => 'module/Tests/caches',
+                        'ttl' => 10,
+                    ));
+
+                    $cacheStorage->addPlugin($plugin);
+
+                    $cache = PatternFactory::factory(
+                        'object',
+                        array(
+                            'object' => new \stdClass(),
+                            'storage' => $cacheStorage,
+                            'cache_output' => false,
+                            'cache_by_default' => true,
+                        )
+                    );
+
+                    return $cache;
+                },
+            )
         );
     }
 }
