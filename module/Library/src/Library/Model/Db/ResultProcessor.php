@@ -52,6 +52,24 @@ class ResultProcessor
      */
     protected $cache;
 
+    public function __sleep()
+    {
+        return array('dataSource', 'mapper', 'logger', 'eventManager');
+    }
+
+    public function __wakeup()
+    {
+        $this->setSelect($this->getDataSource()->getSelect());
+    }
+
+    public function __clone()
+    {
+        // Updating the cached object (the prototype has another cache object)
+        if ($this->getCache() !== null) {
+            $this->getCache()->getOptions()->setObject($this);
+        }
+    }
+
     /**
      * @param \Zend\EventManager\EventManagerInterface $eventManager
      * @return $this
@@ -183,10 +201,15 @@ class ResultProcessor
     /**
      * This is just a proxy method to facilitate the auto-complete
      *
+     * @throws \RuntimeException
      * @return ResultProcessor
      */
     public function cache()
     {
+        if ($this->getCache() == null) {
+            throw new \RuntimeException('No cache object has been set');
+        }
+
         return $this->getCache();
     }
 

@@ -24,19 +24,15 @@ class TableGateway extends AbstractTableGateway
     /**
      * This is just a proxy method to facilitate the auto-complete
      *
+     * @throws \RuntimeException
      * @return TableGateway
      */
     public function cache()
     {
-        return $this->getCache();
-    }
+        if($this->getCache() == null) {
+            throw new \RuntimeException('No cache object has been set');
+        }
 
-    /**
-     * THIS IS A DUMMY METHOD TO TEST THE CACHE LIMITATIONS
-     *
-     */
-    public function dummyMethod()
-    {
-        return 1;
+        return $this->getCache();
     }
 }

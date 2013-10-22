@@ -97,10 +97,10 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
      * @param ObjectCache $cache
      * @return ObjectCache
      */
-    protected function getCacheClone(ObjectCache $cache)
+    public function getCacheClone(ObjectCache $cache)
     {
         $cacheOptions = clone $cache->getOptions();
-        $newCache = clone $cache;
+        $newCache     = clone $cache;
 
         // Updating the cache options in the $newCache
         $newCache->setOptions($cacheOptions);
