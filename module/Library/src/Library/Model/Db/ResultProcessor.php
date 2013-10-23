@@ -20,7 +20,7 @@ use Zend\EventManager\EventManagerInterface;
 use Zend\Log\LoggerInterface;
 use Zend\Paginator\Paginator;
 
-class ResultProcessor
+class ResultProcessor implements ResultProcessorInterface
 {
     /**
      * @var Select
@@ -87,6 +87,9 @@ class ResultProcessor
         return $this;
     }
 
+    /**
+     * @return EventManager
+     */
     public function getEventManager()
     {
         if (null === $this->eventManager) {
@@ -271,5 +274,29 @@ class ResultProcessor
         }
 
         return $resultSet;
+    }
+
+    /**
+     * @param $id
+     * @return mixed
+     */
+    public function findById($id)
+    {
+        $this->getSelect()->where(array($this->getDataSource()->getTable() . '.id' => $id));
+
+        $resultSet = $this->getResultSet();
+        if ($resultSet !== null && $resultSet->count() > 0) {
+            return $resultSet->current();
+        }
+
+        return null;
+    }
+
+    /**
+     * @return ResultProcessor
+     */
+    public function fetch()
+    {
+        return $this;
     }
 }

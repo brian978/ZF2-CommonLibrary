@@ -14,6 +14,7 @@ use Tests\TestHelpers\AbstractTest;
 use Tests\TestHelpers\Traits\DatabaseCreator;
 use Zend\EventManager\Event;
 
+
 class TableGatewayTest extends AbstractTest
 {
     use DatabaseCreator;
@@ -115,9 +116,12 @@ class TableGatewayTest extends AbstractTest
 
     public function testGatewayCanReturnResultSetAndCacheResult()
     {
-        if(!is_dir('module/Tests/caches')) {
-            mkdir('module/Tests/caches');
+        // Cleaning up the files first
+        if(is_dir('module/Tests/caches')) {
+            $this->_removeRecursive('module/Tests/caches');
         }
+
+        mkdir('module/Tests/caches');
 
         $table = new TableGateway(self::$adapter, 'test');
         $table->setCache($this->serviceManager->get('Zend\Cache'));
@@ -134,6 +138,9 @@ class TableGatewayTest extends AbstractTest
         $this->assertInstanceOf('\Zend\Db\ResultSet\ResultSet', $table->fetch()->cache()->getResultSet());
     }
 
+    /**
+     * @depends testGatewayCanReturnResultSetAndCacheResult
+     */
     public function testGatewayCanReturnCachedResultSet()
     {
         $table = new TableGateway(self::$adapter, 'test');

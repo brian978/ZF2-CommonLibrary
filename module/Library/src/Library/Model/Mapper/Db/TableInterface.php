@@ -26,16 +26,6 @@ interface TableInterface extends TableGatewayInterface
     public function getMapper();
 
     /**
-     * Method is used to add the JOIN statements to the provided $select object
-     * The data represents the information on how to join the objects
-     *
-     * @param TableInterface $rootDataSource
-     * @param array $specs
-     * @return mixed
-     */
-    public function enhanceSelect(TableInterface $rootDataSource, array $specs);
-
-    /**
      * Returns the name of the table
      *
      * @return string

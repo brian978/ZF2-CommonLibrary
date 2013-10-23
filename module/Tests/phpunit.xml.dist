@@ -1,6 +1,6 @@
 <phpunit bootstrap="BootstrapInit.php">
     <testsuites>
-        <testsuite name="ZF2-ExtendedFramework Test Suite" phpVersion="5.3.3" phpVersionOperator=">=">
+        <testsuite name="ZF2-ExtendedFramework Test Suite" phpVersion="5.4" phpVersionOperator=">=">
             <directory>../Library/tests/LibraryTests/</directory>
             <directory>../Auth/tests/AuthTests/</directory>
         </testsuite>

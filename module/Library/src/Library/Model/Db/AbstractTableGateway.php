@@ -56,21 +56,6 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
     protected $cache;
 
     /**
-     * @return ObjectCache
-     */
-    abstract public function getCache();
-
-    /**
-     * This is just a proxy method to facilitate the auto-complete
-     * (quite useless to require this method in all the gateways but it helps with auto-completion)
-     *
-     * Should this be implemented in abstract?
-     *
-     * @return AbstractTableGateway
-     */
-    abstract public function cache();
-
-    /**
      * Constructor
      *
      * @param AdapterInterface $adapter
@@ -106,6 +91,14 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
         $newCache->setOptions($cacheOptions);
 
         return $newCache;
+    }
+
+    /**
+     * @return ObjectCache
+     */
+    public function getCache()
+    {
+        return $this->cache;
     }
 
     /**
@@ -243,6 +236,19 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
     }
 
     /**
+     * @param Select $select
+     * @return null|ResultSetInterface
+     * @throws \RuntimeException
+     */
+    public function selectWith(Select $select)
+    {
+        if (!$this->isInitialized) {
+            $this->initialize();
+        }
+        return $this->executeSelect($select);
+    }
+
+    /**
      * @return Select
      */
     public function getSelect()
@@ -324,33 +330,15 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
     }
 
     /**
-     * @param $id
+     * @param string $method
+     * @param array $arguments
      * @return mixed
      */
-    public function findById($id)
+    public function __call($method, $arguments)
     {
-        $result    = null;
-        $select    = $this->getSelect()->where(array($this->table . '.id' => $id));
         $processor = clone $this->getProcessorPrototype();
+        $processor->setSelect($this->getSelect());
 
-        $resultSet = $processor->setSelect($select)->getResultSet();
-
-        if ($resultSet !== null && $resultSet->count() > 0) {
-            $result = $resultSet->current();
-        }
-
-        return $result;
-    }
-
-    /**
-     * @return ResultProcessor
-     */
-    public function fetch()
-    {
-        $resultSet = null;
-        $select    = $this->getSelect();
-        $processor = clone $this->getProcessorPrototype();
-
-        return $processor->setSelect($select);
+        return call_user_func_array(array($processor, $method), $arguments);
     }
 }
