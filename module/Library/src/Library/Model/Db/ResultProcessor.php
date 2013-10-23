@@ -33,11 +33,6 @@ class ResultProcessor implements ResultProcessorInterface
     protected $dataSource;
 
     /**
-     * @var AbstractMapper
-     */
-    protected $mapper;
-
-    /**
      * @var LoggerInterface
      */
     protected $logger;
@@ -116,25 +111,6 @@ class ResultProcessor implements ResultProcessorInterface
     public function getDataSource()
     {
         return $this->dataSource;
-    }
-
-    /**
-     * @param \Library\Model\Mapper\Db\MapperInterface $mapper
-     * @return ResultProcessor
-     */
-    public function setMapper($mapper)
-    {
-        $this->mapper = $mapper;
-
-        return $this;
-    }
-
-    /**
-     * @return \Library\Model\Mapper\Db\MapperInterface
-     */
-    public function getMapper()
-    {
-        return $this->mapper;
     }
 
     /**
@@ -226,7 +202,9 @@ class ResultProcessor implements ResultProcessorInterface
      */
     public function processResultSet(ResultSet $resultSet, $map = 'default')
     {
-        if ($this->mapper === null) {
+        $dataSourceMapper = $this->getDataSource()->getMapper();
+
+        if ($dataSourceMapper === null) {
             return $resultSet;
         }
 
@@ -235,7 +213,7 @@ class ResultProcessor implements ResultProcessorInterface
 
         /** @var $row \ArrayObject */
         foreach ($resultSet as $row) {
-            $rows[] = $this->getMapper()->populate($row->getArrayCopy(), $map);
+            $rows[] = $dataSourceMapper->populate($row->getArrayCopy(), $map);
         }
 
         return $resultSet->initialize(new \ArrayIterator($rows));

@@ -79,17 +79,6 @@ interface ResultProcessorInterface
     public function getLogger();
 
     /**
-     * @param \Library\Model\Mapper\Db\MapperInterface $mapper
-     * @return ResultProcessor
-     */
-    public function setMapper($mapper);
-
-    /**
-     * @return \Library\Model\Mapper\Db\MapperInterface
-     */
-    public function getMapper();
-
-    /**
      * This is just a proxy method to facilitate the auto-complete
      *
      * @throws \RuntimeException

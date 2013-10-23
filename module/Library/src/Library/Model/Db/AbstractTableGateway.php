@@ -131,7 +131,6 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
 
         // Injecting the dependencies
         $this->processorPrototype
-            ->setMapper($this->getMapper())
             ->setLogger($this->getLogger());
 
         // This may not always be set (like when unit testing using the abstract directly)
@@ -161,11 +160,6 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
     public function setMapper(MapperInterface $mapper)
     {
         $this->mapper = $mapper;
-
-        // Updating the dependencies of the other objects
-        if (!empty($this->processorPrototype)) {
-            $this->processorPrototype->setMapper($this->mapper);
-        }
 
         // To avoid a loop we only set the dataSource it hasn't been set
         // We do this because a dataSource can be attached to a mapper and vice-versa

@@ -9,8 +9,6 @@
 
 namespace Library\Model\Db;
 
-use Zend\Cache\Pattern\ObjectCache;
-
 class TableGateway extends AbstractTableGateway
 {
 }

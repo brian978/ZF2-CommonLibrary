@@ -138,9 +138,6 @@ class TableGatewayTest extends AbstractTest
         $this->assertInstanceOf('\Zend\Db\ResultSet\ResultSet', $table->fetch()->cache()->getResultSet());
     }
 
-    /**
-     * @depends testGatewayCanReturnResultSetAndCacheResult
-     */
     public function testGatewayCanReturnCachedResultSet()
     {
         $table = new TableGateway(self::$adapter, 'test');
