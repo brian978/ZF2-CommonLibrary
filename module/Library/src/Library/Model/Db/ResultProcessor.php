@@ -10,7 +10,6 @@
 namespace Library\Model\Db;
 
 use Library\Log\DummyLogger;
-use Library\Model\Mapper\Db\AbstractMapper;
 use Library\Paginator\Adapter\DbSelect;
 use Zend\Cache\Pattern\ObjectCache;
 use Zend\Db\ResultSet\ResultSet;
@@ -49,7 +48,7 @@ class ResultProcessor implements ResultProcessorInterface
 
     public function __sleep()
     {
-        return array('dataSource', 'mapper', 'logger', 'eventManager');
+        return array('logger', 'eventManager');
     }
 
     public function __wakeup()
@@ -254,27 +253,5 @@ class ResultProcessor implements ResultProcessorInterface
         return $resultSet;
     }
 
-    /**
-     * @param $id
-     * @return mixed
-     */
-    public function findById($id)
-    {
-        $this->getSelect()->where(array($this->getDataSource()->getTable() . '.id' => $id));
 
-        $resultSet = $this->getResultSet();
-        if ($resultSet !== null && $resultSet->count() > 0) {
-            return $resultSet->current();
-        }
-
-        return null;
-    }
-
-    /**
-     * @return ResultProcessor
-     */
-    public function fetch()
-    {
-        return $this;
-    }
 }

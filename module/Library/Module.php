@@ -10,6 +10,7 @@
 namespace Library;
 
 use Library\Form\Factory;
+use Zend\Cache\Pattern\ObjectCache;
 use Zend\Cache\Storage\Plugin\Serializer;
 use Zend\ModuleManager\Feature\AutoloaderProviderInterface;
 use Zend\ModuleManager\Feature\ConfigProviderInterface;
@@ -86,6 +87,7 @@ class Module implements ConfigProviderInterface, AutoloaderProviderInterface, Se
                     $cacheStorage->addPlugin($clearExpired);
                     $cacheStorage->addPlugin($serializer);
 
+                    /** @var $cache ObjectCache */
                     $cache = PatternFactory::factory(
                         'object',
                         array(

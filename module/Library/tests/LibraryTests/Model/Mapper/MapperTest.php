@@ -34,7 +34,6 @@ class MapperTest extends AbstractTest
 
         $object = $mapper->populate($data);
 
-        // TODO: split these
         $this->assertInstanceOf('\Tests\TestHelpers\Model\Entity\MockEntity', $object);
         $this->assertInstanceOf('\Tests\TestHelpers\Model\Entity\MockEntity', $object->getTestField2());
         $this->assertEquals('asdadsad', $object->getTestField1());
@@ -55,7 +54,6 @@ class MapperTest extends AbstractTest
 
         $object = $mapper->populate($data, 'default');
 
-        // TODO: split these
         $this->assertInstanceOf('\Tests\TestHelpers\Model\Entity\MockEntity', $object);
         $this->assertInstanceOf('\Tests\TestHelpers\Model\Entity\MockEntity', $object->getTestField2());
         $this->assertEquals('asdadsad', $object->getTestField1());
@@ -93,7 +91,6 @@ class MapperTest extends AbstractTest
 
         $object = $mapper->populate($data);
 
-        // TODO: split these
         $this->assertInstanceOf('\Tests\TestHelpers\Model\Entity\MockEntity', $object);
         $this->assertInstanceOf('\Tests\TestHelpers\Model\Entity\MockEntity', $object->getTestField2());
         $this->assertEquals('asdadsad', $object->getTestField1());

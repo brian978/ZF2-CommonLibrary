@@ -11,9 +11,8 @@ namespace Library\Model\Db;
 
 use Library\Collection\GatewayTracker;
 use Library\Log\DummyLogger;
-use Library\Model\Mapper\Db\AbstractMapper;
-use Library\Model\Mapper\Db\MapperInterface;
-use Library\Model\Mapper\Db\TableInterface;
+use Library\Model\Mapper\AbstractMapper;
+use Library\Model\Mapper\MapperInterface;
 use Zend\Cache\Pattern\ObjectCache;
 use Zend\Db\Sql\Select;
 use Zend\Db\TableGateway\TableGateway;
@@ -62,7 +61,8 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
      * @param string $table
      * @param mixed $features
      * @param ResultSetInterface $resultSetPrototype
-     * @param Sql $sql
+     * @param \Zend\Db\Sql\Sql $sql
+     * @return \Library\Model\Db\AbstractTableGateway
      */
     public function __construct(
         AdapterInterface $adapter,
@@ -154,18 +154,12 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
     }
 
     /**
-     * @param \Library\Model\Mapper\Db\MapperInterface $mapper
+     * @param \Library\Model\Mapper\MapperInterface $mapper
      * @return $this
      */
     public function setMapper(MapperInterface $mapper)
     {
         $this->mapper = $mapper;
-
-        // To avoid a loop we only set the dataSource it hasn't been set
-        // We do this because a dataSource can be attached to a mapper and vice-versa
-        if ($this->mapper->getDataSource() !== $this) {
-            $this->mapper->setDataSource($this);
-        }
 
         return $this;
     }
@@ -239,6 +233,7 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
         if (!$this->isInitialized) {
             $this->initialize();
         }
+
         return $this->executeSelect($select);
     }
 
@@ -249,11 +244,6 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
     {
         if (empty($this->select)) {
             $this->select = $this->getSql()->select();
-
-            // The gateway might not require a mapper
-            if (!empty($this->mapper)) {
-                $this->mapper->prepareSelect();
-            }
         }
 
         return $this->select;
@@ -280,47 +270,32 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
     }
 
     /**
-     * Method is used to add the JOIN statements to the provided $select object
-     * The $specs represents the information on how to join the objects
-     *
-     * @param TableInterface $rootDataSource
-     * @param array $specs
-     * @return AbstractTableGateway
+     * @param $id
+     * @return mixed
      */
-    public function enhanceSelect(TableInterface $rootDataSource, array $specs)
+    public function findById($id)
     {
-        // This is executed by the gateways that are attached to the child mappers
-        if (empty($this->select)) {
-            $this->select = $rootDataSource->getSelect();
+        $select    = $this->getSelect()->where(array($this->getTable() . '.id' => $id));
+        $processor = clone $this->getProcessorPrototype();
+        $processor->setSelect($select);
+
+        $resultSet = $processor->getResultSet();
+        if ($resultSet !== null && $resultSet->count() > 0) {
+            return $resultSet->current();
         }
 
-        // Building the join data
-        $on = '';
+        return null;
+    }
 
-        foreach ($specs['on'] as $leftField => $rightField) {
-            if (strpos($leftField, '.') === false) {
-                $leftField = $rootDataSource->getTable() . '.' . $leftField;
-            }
+    /**
+     * @return ResultProcessor
+     */
+    public function fetch()
+    {
+        $processor = clone $this->getProcessorPrototype();
+        $processor->setSelect($this->getSelect());
 
-            if (strpos($rightField, '.') === false) {
-                $rightTableName = $specs['table'];
-                if (is_array($rightTableName)) {
-                    $rightTableName = key($rightTableName);
-                }
-
-                $rightField = $rightTableName . '.' . $rightField;
-            }
-
-            if (!empty($on)) {
-                $on .= ' AND ';
-            }
-
-            $on .= $leftField . ' = ' . $rightField;
-        }
-
-        $this->getSelect()->join($specs['table'], $on, $specs['columns'], $specs['type']);
-
-        return $this;
+        return $processor;
     }
 
     /**

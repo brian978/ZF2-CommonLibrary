@@ -9,7 +9,7 @@
 
 namespace Library\Collection;
 
-use Library\Model\Mapper\Db\TableInterface;
+use Library\Model\Db\TableInterface;
 
 class GatewayTracker extends AbstractCollection
 {
