@@ -9,7 +9,6 @@
 
 namespace Library;
 
-use Library\Form\Factory;
 use Zend\Cache\Pattern\ObjectCache;
 use Zend\Cache\Storage\Plugin\Serializer;
 use Zend\ModuleManager\Feature\AutoloaderProviderInterface;

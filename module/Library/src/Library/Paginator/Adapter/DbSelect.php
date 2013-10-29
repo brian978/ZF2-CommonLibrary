@@ -59,7 +59,7 @@ class DbSelect extends ZendDbSelect
             $processor->setSelect($select);
 
             // Updating the map
-            $processor->getEventManager()
+            $processor->getDataSource()->getEventManager()
                 ->trigger('changePaginatorMap', $this, array('map' => &$map));
 
             // Getting the result set

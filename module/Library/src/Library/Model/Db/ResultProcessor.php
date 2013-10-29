@@ -11,25 +11,13 @@ namespace Library\Model\Db;
 
 use Library\Log\DummyLogger;
 use Library\Paginator\Adapter\DbSelect;
-use Zend\Cache\Pattern\ObjectCache;
 use Zend\Db\ResultSet\ResultSet;
 use Zend\Db\Sql\Select;
-use Zend\EventManager\EventManager;
-use Zend\EventManager\EventManagerInterface;
 use Zend\Log\LoggerInterface;
 use Zend\Paginator\Paginator;
 
 class ResultProcessor implements ResultProcessorInterface
 {
-    /**
-     * @var Select
-     */
-    protected $select;
-
-    /**
-     * @var AbstractTableGateway
-     */
-    protected $dataSource;
 
     /**
      * @var LoggerInterface
@@ -37,99 +25,14 @@ class ResultProcessor implements ResultProcessorInterface
     protected $logger;
 
     /**
-     * @var EventManager
+     * @var AbstractTableGateway
      */
-    protected $eventManager;
+    protected $dataSource;
 
     /**
-     * @var ObjectCache
+     * @var Select
      */
-    protected $cache;
-
-    public function __sleep()
-    {
-        return array('logger', 'eventManager');
-    }
-
-    public function __wakeup()
-    {
-        $this->setSelect($this->getDataSource()->getSelect());
-    }
-
-    public function __clone()
-    {
-        // Updating the cached object (the prototype has another cache object)
-        if ($this->getCache() !== null) {
-            $this->getCache()->getOptions()->setObject($this);
-        }
-    }
-
-    /**
-     * @param \Zend\EventManager\EventManagerInterface $eventManager
-     * @return $this
-     */
-    public function setEventManager(EventManagerInterface $eventManager)
-    {
-        $eventManager->setIdentifiers(
-            array(
-                __CLASS__,
-                get_called_class(),
-            )
-        );
-        $this->eventManager = $eventManager;
-
-        return $this;
-    }
-
-    /**
-     * @return EventManager
-     */
-    public function getEventManager()
-    {
-        if (null === $this->eventManager) {
-            $this->setEventManager(new EventManager());
-        }
-
-        return $this->eventManager;
-    }
-
-    /**
-     * @param \Library\Model\Db\AbstractTableGateway $dataSource
-     * @return ResultProcessor
-     */
-    public function setDataSource($dataSource)
-    {
-        $this->dataSource = $dataSource;
-
-        return $this;
-    }
-
-    /**
-     * @return \Library\Model\Db\AbstractTableGateway
-     */
-    public function getDataSource()
-    {
-        return $this->dataSource;
-    }
-
-    /**
-     * @param \Zend\Db\Sql\Select $select
-     * @return ResultProcessor
-     */
-    public function setSelect($select)
-    {
-        $this->select = $select;
-
-        return $this;
-    }
-
-    /**
-     * @return \Zend\Db\Sql\Select
-     */
-    public function getSelect()
-    {
-        return $this->select;
-    }
+    protected $select;
 
     /**
      * @return \Zend\Log\LoggerInterface
@@ -155,40 +58,43 @@ class ResultProcessor implements ResultProcessorInterface
     }
 
     /**
-     * @param \Zend\Cache\Pattern\ObjectCache $cache
+     * @param \Library\Model\Db\AbstractTableGateway $dataSource
+     *
      * @return ResultProcessor
      */
-    public function setCache(ObjectCache $cache)
+    public function setDataSource($dataSource)
     {
-        $this->cache = $cache;
-
-        // Updating the cached object (might already be set to the proper one)
-        $this->cache->getOptions()->setObject($this);
+        $this->dataSource = $dataSource;
 
         return $this;
     }
 
     /**
-     * @return \Zend\Cache\Pattern\ObjectCache
+     * @return \Library\Model\Db\AbstractTableGateway
      */
-    public function getCache()
+    public function getDataSource()
     {
-        return $this->cache;
+        return $this->dataSource;
     }
 
     /**
-     * This is just a proxy method to facilitate the auto-complete
+     * @param \Zend\Db\Sql\Select $select
      *
-     * @throws \RuntimeException
      * @return ResultProcessor
      */
-    public function cache()
+    public function setSelect($select)
     {
-        if ($this->getCache() == null) {
-            throw new \RuntimeException('No cache object has been set');
-        }
+        $this->select = $select;
 
-        return $this->getCache();
+        return $this;
+    }
+
+    /**
+     * @return \Zend\Db\Sql\Select
+     */
+    public function getSelect()
+    {
+        return $this->select;
     }
 
     /**
@@ -252,6 +158,4 @@ class ResultProcessor implements ResultProcessorInterface
 
         return $resultSet;
     }
-
-
 }

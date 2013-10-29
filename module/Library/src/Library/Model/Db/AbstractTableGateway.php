@@ -20,6 +20,8 @@ use Zend\Db\Adapter\AdapterInterface;
 use Zend\Db\ResultSet\ResultSet;
 use Zend\Db\ResultSet\ResultSetInterface;
 use Zend\Db\Sql\Sql;
+use Zend\EventManager\EventManager;
+use Zend\EventManager\EventManagerInterface;
 use Zend\Log\LoggerInterface;
 
 abstract class AbstractTableGateway extends TableGateway implements TableInterface
@@ -55,6 +57,11 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
     protected $cache;
 
     /**
+     * @var EventManager
+     */
+    protected $eventManager;
+
+    /**
      * Constructor
      *
      * @param AdapterInterface $adapter
@@ -78,19 +85,58 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
         parent::__construct($table, $adapter, $features, $resultSetPrototype, $sql);
     }
 
-    /**
-     * @param ObjectCache $cache
-     * @return ObjectCache
-     */
-    public function getCacheClone(ObjectCache $cache)
+    public function __sleep()
     {
-        $cacheOptions = clone $cache->getOptions();
-        $newCache     = clone $cache;
+        return array('select', 'mapper', 'tableTracker', 'logger', 'processorPrototype');
+    }
 
-        // Updating the cache options in the $newCache
-        $newCache->setOptions($cacheOptions);
+    /**
+     * Select
+     *
+     * We override this to make it use the getSelect() method
+     *
+     * @param \Zend\Db\Sql\Where|\Closure|string|array $where
+     * @return ResultSet
+     */
+    public function select($where = null)
+    {
+        if (!$this->isInitialized) {
+            $this->initialize();
+        }
 
-        return $newCache;
+        $select = $this->getSelect();
+
+        if ($where instanceof \Closure) {
+            $where($select);
+        } elseif ($where !== null) {
+            $select->where($where);
+        }
+
+        return $this->selectWith($select);
+    }
+
+    /**
+     * @param EventManagerInterface $eventManager
+     * @return $this
+     */
+    public function setEventManager(EventManagerInterface $eventManager)
+    {
+        $this->eventManager = $eventManager;
+        $this->eventManager->setIdentifiers(array(__CLASS__, get_called_class()));
+
+        return $this;
+    }
+
+    /**
+     * @return EventManager
+     */
+    public function getEventManager()
+    {
+        if (null === $this->eventManager) {
+            $this->setEventManager(new EventManager());
+        }
+
+        return $this->eventManager;
     }
 
     /**
@@ -102,6 +148,16 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
     }
 
     /**
+     * Alias to getCache() for easier calling
+     *
+     * @return $this
+     */
+    public function cache()
+    {
+        return $this->getCache();
+    }
+
+    /**
      * //TODO: find better way to set the object cache
      *
      * @param ObjectCache $cache
@@ -109,14 +165,8 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
      */
     public function setCache(ObjectCache $cache)
     {
-        // Updating the cache object
-        $cache->getOptions()->setObject($this);
-
-        // Setting the result processor cache
-        // (needs to be done before setting the cache to prevent setting it twice when no cache is set)
-        $this->getProcessorPrototype()->setCache($this->getCacheClone($cache));
-
         $this->cache = $cache;
+        $this->cache->getOptions()->setObject($this);
 
         return $this;
     }
@@ -132,11 +182,6 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
         // Injecting the dependencies
         $this->processorPrototype
             ->setLogger($this->getLogger());
-
-        // This may not always be set (like when unit testing using the abstract directly)
-        if ($this->getCache() !== null) {
-            $this->processorPrototype->setCache($this->getCacheClone($this->cache));
-        }
 
         return $this;
     }
@@ -198,43 +243,6 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
         }
 
         return $this;
-    }
-
-    /**
-     * Select
-     *
-     * @param \Zend\Db\Sql\Where|\Closure|string|array $where
-     * @return ResultSet
-     */
-    public function select($where = null)
-    {
-        if (!$this->isInitialized) {
-            $this->initialize();
-        }
-
-        $select = $this->getSelect();
-
-        if ($where instanceof \Closure) {
-            $where($select);
-        } elseif ($where !== null) {
-            $select->where($where);
-        }
-
-        return $this->selectWith($select);
-    }
-
-    /**
-     * @param Select $select
-     * @return null|ResultSetInterface
-     * @throws \RuntimeException
-     */
-    public function selectWith(Select $select)
-    {
-        if (!$this->isInitialized) {
-            $this->initialize();
-        }
-
-        return $this->executeSelect($select);
     }
 
     /**

@@ -18,23 +18,18 @@ class TableGatewayTest extends AbstractTest
 {
     use DatabaseCreator;
 
-    public function testCanFindByIdWithoutAMapper()
-    {
-        $table        = new TableGateway(self::$adapter, 'test');
-        $entityObject = $table->findById(2);
-
-        $this->assertEquals(2, $entityObject['id']);
-
-        return $table;
-    }
-
+    /**
+     * @param $dir
+     */
     protected function _removeRecursive($dir)
     {
         if (file_exists($dir)) {
             $dirIt = new \DirectoryIterator($dir);
+
+            /** @var $entry \SplFileInfo */
             foreach ($dirIt as $entry) {
-                $fname = $entry->getFilename();
-                if ($fname == '.' || $fname == '..') {
+                $filename = $entry->getFilename();
+                if ($filename == '.' || $filename == '..') {
                     continue;
                 }
 
@@ -47,6 +42,16 @@ class TableGatewayTest extends AbstractTest
 
             rmdir($dir);
         }
+    }
+
+    public function testCanFindByIdWithoutAMapper()
+    {
+        $table        = new TableGateway(self::$adapter, 'test');
+        $entityObject = $table->findById(2);
+
+        $this->assertEquals(2, $entityObject['id']);
+
+        return $table;
     }
 
     /**
@@ -89,7 +94,7 @@ class TableGatewayTest extends AbstractTest
         $object = $tableMock->fetch();
 
         // Changing the map in the paginator
-        $object->getEventManager()->attach(
+        $tableMock->getEventManager()->attach(
             'changePaginatorMap',
             function (Event $e) use ($tableMock) {
                 if ($e->getTarget()->getProcessor()->getDataSource() === $tableMock) {
@@ -114,19 +119,17 @@ class TableGatewayTest extends AbstractTest
         $this->assertEquals(1, $currentItems->count());
     }
 
-    /**
-     * @expectedException PHPUnit_Framework_SkippedTestError
-     */
+
     public function testGatewayCanReturnResultSetAndCacheResult()
     {
-        $this->markTestSkipped('Cache must be redone');
-
         // Cleaning up the files first
         if (is_dir('module/Tests/caches')) {
             $this->_removeRecursive('module/Tests/caches');
         }
 
         mkdir('module/Tests/caches');
+
+        $cacheHit = false;
 
         /** @var $cache \Zend\Cache\Pattern\ObjectCache */
         $cache = $this->serviceManager->get('Zend\Cache');
@@ -141,11 +144,31 @@ class TableGatewayTest extends AbstractTest
         $mapperMock->setEntityClass('\Tests\TestHelpers\Model\Entity\MockEntity')
             ->setMap(array('id' => 'id', 'field1' => 'testField1'));
 
-        $this->assertInstanceOf('\Zend\Db\ResultSet\ResultSet', $table->fetch()->cache()->getResultSet());
+        // An event to track the cache hit
+        $table->getCache()
+            ->getOptions()
+            ->getStorage()
+            ->getEventManager()
+            ->attach(
+                'getItem.post',
+                function () use (&$cacheHit) {
+                    $cacheHit = true;
+                }
+            );
+
+        // Populating the cache
+        $table->cache()->fetch()->getResultSet();
+
+        // Triggering the cache hit
+        $resultProcessor = $table->cache()->fetch();
+        $resultSet       = $resultProcessor->getResultSet();
+
+        $this->assertInstanceOf('\Zend\Db\ResultSet\ResultSet', $resultSet);
+        $this->assertTrue($cacheHit);
     }
 
     /**
-     * @expectedException PHPUnit_Framework_SkippedTestError
+     * @expectedException \PHPUnit_Framework_SkippedTestError
      */
     public function testGatewayCanReturnCachedResultSet()
     {

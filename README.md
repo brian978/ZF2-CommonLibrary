@@ -61,4 +61,4 @@ What happens if the ResultSet needs a more complicated processing? Do we make a 
 for each method that interacts with the database?
 
 How can we return the result from the ResultProcessor without calling methods
-from the TableGateway and ResultProcessor? (except for the ones that return the cache object)
+from the TableGateway and ResultProcessor using the cache? (except for the ones that return the cache object)
