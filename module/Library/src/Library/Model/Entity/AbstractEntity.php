@@ -45,27 +45,22 @@ abstract class AbstractEntity implements EntityInterface
         $properties       = array();
         $reflectionClass  = new \ReflectionClass($this);
         $objectMethods    = $reflectionClass->getMethods(\ReflectionMethod::IS_PUBLIC);
-        $objectProperties = $reflectionClass->getProperties(
-            \ReflectionProperty::IS_PUBLIC | \ReflectionProperty::IS_PROTECTED
-        );
+        $objectProperties = array();
 
         // Getting the names of the methods
         array_walk(
             $objectMethods,
-            function (&$value, $index) use ($objectMethods) {
-                $value = $objectMethods[$index]->getName();
+            function (&$value, $index) use ($objectMethods, &$objectProperties) {
+                $methodName = $objectMethods[$index]->getName();
+                if (strpos($methodName, 'get') === 0) {
+                    $objectProperties[lcfirst(substr($methodName, 3))] = $methodName;
+                }
             }
         );
 
         // Getting the properties of the object
-        foreach ($objectProperties as $property) {
-            $propertyName = $property->getName();
-
-            // Making sure we have a getter for that property to avoid returning
-            // values that should not be returned
-            if (in_array('get' . ucfirst($propertyName), $objectMethods)) {
-                $properties[$property->getName()] = $this->{$property->getName()};
-            }
+        foreach ($objectProperties as $propertyName => $methodName) {
+            $properties[$propertyName] = $this->$propertyName;
         }
 
         return $properties;
