@@ -5,11 +5,16 @@
 namespace Library\Model\Db;
 
 use Zend\Db\ResultSet\ResultSet;
+use Zend\EventManager\EventManager;
+use Zend\EventManager\EventManagerInterface;
 use Zend\Log\LoggerInterface;
 use Zend\Paginator\Paginator;
 
 interface ResultProcessorInterface
 {
+    const EVENT_PROCESS_ROW = 'processRow';
+    const EVENT_CHANGE_MAP  = 'changeMap';
+
     /**
      * @return Paginator
      */
@@ -41,4 +46,15 @@ interface ResultProcessorInterface
      * @return $this
      */
     public function setLogger(LoggerInterface $logger);
+
+    /**
+     * @param EventManagerInterface $eventManager
+     * @return $this
+     */
+    public function setEventManager(EventManagerInterface $eventManager);
+
+    /**
+     * @return EventManager
+     */
+    public function getEventManager();
 }

@@ -17,14 +17,14 @@ TableGateway
 
 - handles 1 database table
 
-- processes select objects (usually the action is requested by a ResultProcessor)
+- processes select objects (usually the action is requested by a ResultProcessor when calling the getResultSet() method)
 
-- triggers events either on the mappers or the result processors
+- attaches listeners to events from the data mappers and result processors
 
 
 ResultProcessor
 
-- is assigned to only 1 TableGateway
+- is assigned to only 1 TableGateway and 1 method from a TableGateway
 
 - it is returned by the TableGateway from methods that interact with the database
 
@@ -33,8 +33,8 @@ ResultProcessor
 
 - the results of the methods may be cached
 
-- contains a EventManager object that can be used by different objects
- (like Paginator and TableGateway)
+- contains an EventManager object that can be used by different objects
+ (like Paginator and TableGateway) to listen in different events that the interface offers
 
 
 Database Mapper
@@ -43,7 +43,7 @@ Database Mapper
 
 - called by the ResultProcessor via the TableGateway if the data needs to be mapped to objects
 
-- uses a table tracker to collect all the child data mappers that will be used when mapping the
+- uses a GatewayTracker to collect all the child data mappers that will be used when mapping the
 data from the database
 
 
@@ -55,10 +55,22 @@ GatewayTracker
 
 
 Design issues
------------
+--------------
 
-What happens if the ResultSet needs a more complicated processing? Do we make a processor
+**Issue 1:** What happens if the ResultSet needs a more complicated processing? Do we make a processor
 for each method that interacts with the database?
 
-How can we return the result from the ResultProcessor without calling methods
+*Solution 1:* We use an event called ResultProcessorInterface::EVENT_PROCESS_ROW which is handled in the gateway method
+
+
+**Issue 2:** How can we return the result from the ResultProcessor without calling methods
 from the TableGateway and ResultProcessor using the cache? (except for the ones that return the cache object)
+
+*Solution 1:* Pending...
+
+
+**Issue 3:** When caching the response of a method from the TableGateway the cache stores the ResultProcessor and not
+the result from the ResultProcessor method call. The cache should cascade to the ResultProcessor even though it's called
+from the TableGateway.
+
+*Solution 1:* Pending...

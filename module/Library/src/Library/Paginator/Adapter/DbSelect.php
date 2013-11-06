@@ -10,6 +10,7 @@
 namespace Library\Paginator\Adapter;
 
 use Library\Model\Db\ResultProcessor;
+use Library\Model\Mapper\Map;
 use \Zend\Paginator\Adapter\DbSelect as ZendDbSelect;
 
 class DbSelect extends ZendDbSelect
@@ -52,15 +53,18 @@ class DbSelect extends ZendDbSelect
         $select->limit($itemCountPerPage);
 
         if ($this->processor !== null) {
-            $map = 'default';
+            $map = new Map('default');
 
             // Shallow copy only (we need to rest of the objects to remain the same
             $processor = clone $this->processor;
             $processor->setSelect($select);
 
             // Updating the map
-            $processor->getDataSource()->getEventManager()
-                ->trigger('changePaginatorMap', $this, array('map' => &$map));
+            $this->processor->getEventManager()->trigger(
+                ResultProcessor::EVENT_CHANGE_MAP,
+                $this->processor,
+                array($map)
+            );
 
             // Getting the result set
             $resultSet = $processor->getResultSet($map, $select);

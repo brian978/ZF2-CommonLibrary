@@ -14,13 +14,13 @@ use Library\Log\DummyLogger;
 use Library\Model\Mapper\AbstractMapper;
 use Library\Model\Mapper\MapperInterface;
 use Zend\Cache\Pattern\ObjectCache;
+use Zend\Cache\Storage\PostEvent;
 use Zend\Db\Sql\Select;
 use Zend\Db\TableGateway\TableGateway;
 use Zend\Db\Adapter\AdapterInterface;
 use Zend\Db\ResultSet\ResultSet;
 use Zend\Db\ResultSet\ResultSetInterface;
 use Zend\Db\Sql\Sql;
-use Zend\EventManager\Event;
 use Zend\EventManager\EventManager;
 use Zend\EventManager\EventManagerInterface;
 use Zend\Log\LoggerInterface;
@@ -169,6 +169,18 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
         $this->cache = $cache;
         $this->cache->getOptions()->setObject($this);
 
+        // Setting up some wakeup events
+        /** @var $cacheEventManager EventManager */
+        $cacheEventManager = $this->cache->getOptions()->getStorage()->getEventManager();
+        $cacheEventManager->attach(
+            'getItem.post',
+            function (PostEvent $event) {
+                if($event->getResult() instanceof ResultProcessorInterface) {
+
+                }
+            }
+        );
+
         return $this;
     }
 
@@ -295,15 +307,10 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
      */
     public function findById($id)
     {
-        $this->getEventManager()->attach('processedRow', function(Event $event){
-            if($event->getTarget() === $this) {
-                var_dump($event->getParam(0));
-            }
-        });
+        $processor = $this->getProcessorClone();
+        $processor->getSelect()->where(array($this->getTable() . '.id' => $id));
 
-        $this->getSelect()->where(array($this->getTable() . '.id' => $id));
-
-        $resultSet = $this->getProcessorClone()->getResultSet();
+        $resultSet = $processor->getResultSet();
         if ($resultSet !== null && $resultSet->count() > 0) {
             return $resultSet->current();
         }

@@ -242,12 +242,12 @@ class AbstractMapper implements MapperInterface
 
     /**
      * @param mixed $data
-     * @param string $mapName
-     *
+     * @param Map $map
      * @throws Exception\WrongDataTypeException
+     *
      * @return EntityInterface
      */
-    public function populate($data, $mapName = 'default')
+    public function populate($data, $map = null)
     {
         if (!is_array($data) && $data instanceof \ArrayIterator === false) {
             $message = 'The $data argument must be either an array or an instance of \ArrayIterator';
@@ -256,8 +256,16 @@ class AbstractMapper implements MapperInterface
             throw new WrongDataTypeException($message);
         }
 
+        // Creating a default map
+        if(is_null($map) || is_string($map)) {
+            $map = new Map($map);
+        }
+
         // Creating the object to use (may throw exception if no entity class is provided)
         $object = $this->createEntityObject();
+
+        // Getting the map name
+        $mapName = $map->getName();
 
         // Selecting the map
         if (isset($this->map[$mapName])) {
@@ -341,7 +349,7 @@ class AbstractMapper implements MapperInterface
 
         // Propagating the notification to the other child mappers
         /** @var $mapper AbstractMapper */
-        foreach($this->mappers as $mapper) {
+        foreach ($this->mappers as $mapper) {
             $mapper->notify($notificationCode, $params);
         }
 
@@ -361,7 +369,7 @@ class AbstractMapper implements MapperInterface
         }
 
         // Sending a notification to the current base mapper telling it there is a new base mapper
-        if($mapper->getParentMapper() === null) {
+        if ($mapper->getParentMapper() === null) {
             $mapper->notify(self::NOTIFY_BASE_CHANGED, array('baseMapper' => $this));
         }
 
@@ -401,8 +409,9 @@ class AbstractMapper implements MapperInterface
         if ($this->baseMapper === null) {
             $parentMapper = $this->getParentMapper();
 
-            if($parentMapper === null) {
+            if ($parentMapper === null) {
                 $this->baseMapper = $this;
+
                 return $this->baseMapper;
             }
 

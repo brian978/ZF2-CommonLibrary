@@ -10,9 +10,12 @@
 namespace Library\Model\Db;
 
 use Library\Log\DummyLogger;
+use Library\Model\Mapper\Map;
 use Library\Paginator\Adapter\DbSelect;
 use Zend\Db\ResultSet\ResultSet;
 use Zend\Db\Sql\Select;
+use Zend\EventManager\EventManager;
+use Zend\EventManager\EventManagerInterface;
 use Zend\Log\LoggerInterface;
 use Zend\Paginator\Paginator;
 
@@ -33,6 +36,43 @@ class ResultProcessor implements ResultProcessorInterface
      * @var Select
      */
     protected $select;
+
+    /**
+     * @var EventManagerInterface
+     */
+    protected $eventManager;
+
+    /**
+     * @return array
+     */
+    public function __sleep()
+    {
+        return array('select', 'eventManager');
+    }
+
+    /**
+     * @param EventManagerInterface $eventManager
+     * @return $this
+     */
+    public function setEventManager(EventManagerInterface $eventManager)
+    {
+        $this->eventManager = $eventManager;
+        $this->eventManager->setIdentifiers(array(__CLASS__, get_called_class()));
+
+        return $this;
+    }
+
+    /**
+     * @return EventManager
+     */
+    public function getEventManager()
+    {
+        if (null === $this->eventManager) {
+            $this->setEventManager(new EventManager());
+        }
+
+        return $this->eventManager;
+    }
 
     /**
      * @return \Zend\Log\LoggerInterface
@@ -102,10 +142,10 @@ class ResultProcessor implements ResultProcessorInterface
      * like they are in the database (standard ResultSet)
      *
      * @param ResultSet $resultSet
-     * @param string $map
+     * @param Map $map
      * @return ResultSet
      */
-    public function processResultSet(ResultSet $resultSet, $map = 'default')
+    public function processResultSet(ResultSet $resultSet, $map = null)
     {
         $dataSourceMapper = $this->getDataSource()->getMapper();
 
@@ -120,8 +160,8 @@ class ResultProcessor implements ResultProcessorInterface
         foreach ($resultSet as $row) {
             $populateRow = $dataSourceMapper->populate($row->getArrayCopy(), $map);
 
-            $this->getDataSource()->getEventManager()->trigger(
-                'processedRow',
+            $this->getEventManager()->trigger(
+                static::EVENT_PROCESS_ROW,
                 $this->getDataSource(),
                 array($populateRow)
             );
@@ -144,10 +184,10 @@ class ResultProcessor implements ResultProcessorInterface
     }
 
     /**
-     * @param string $map
+     * @param Map $map
      * @return null|ResultSet
      */
-    public function getResultSet($map = 'default')
+    public function getResultSet($map = null)
     {
         $resultSet = null;
 

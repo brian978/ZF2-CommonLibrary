@@ -9,6 +9,7 @@
 
 namespace LibraryTests\Model\Db;
 
+use Library\Model\Db\ResultProcessorInterface;
 use Library\Model\Db\TableGateway;
 use Tests\TestHelpers\AbstractTest;
 use Tests\TestHelpers\Traits\DatabaseCreator;
@@ -94,13 +95,11 @@ class TableGatewayTest extends AbstractTest
         $object = $tableMock->fetch();
 
         // Changing the map in the paginator
-        $tableMock->getEventManager()->attach(
-            'changePaginatorMap',
-            function (Event $e) use ($tableMock) {
-                if ($e->getTarget()->getProcessor()->getDataSource() === $tableMock) {
-                    $params = $e->getParams();
-                    $map    = & $params['map'];
-                    $map    = 'test';
+        $object->getEventManager()->attach(
+            ResultProcessorInterface::EVENT_CHANGE_MAP,
+            function (Event $e) use ($object) {
+                if ($e->getTarget() === $object) {
+                    $e->getParam(0)->setName('test');
                 }
             }
         );
@@ -164,8 +163,7 @@ class TableGatewayTest extends AbstractTest
         $table->cache()->fetch()->getResultSet();
 
         // Triggering the cache hit
-        $resultProcessor = $table->cache()->fetch();
-        $resultSet       = $resultProcessor->getResultSet();
+        $resultSet = $table->cache()->fetch()->getResultSet();
 
         $this->assertInstanceOf('\Zend\Db\ResultSet\ResultSet', $resultSet);
         $this->assertTrue($cacheHit);
