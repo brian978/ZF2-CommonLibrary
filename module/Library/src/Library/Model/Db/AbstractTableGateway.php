@@ -20,6 +20,7 @@ use Zend\Db\Adapter\AdapterInterface;
 use Zend\Db\ResultSet\ResultSet;
 use Zend\Db\ResultSet\ResultSetInterface;
 use Zend\Db\Sql\Sql;
+use Zend\EventManager\Event;
 use Zend\EventManager\EventManager;
 use Zend\EventManager\EventManagerInterface;
 use Zend\Log\LoggerInterface;
@@ -258,6 +259,17 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
     }
 
     /**
+     * @return ResultProcessor
+     */
+    protected function getProcessorClone()
+    {
+        $processor = clone $this->getProcessorPrototype();
+        $processor->setSelect($this->getSelect());
+
+        return $processor;
+    }
+
+    /**
      * Overwritten the method so we can reset the select after each execution
      * to avoid making 2 consecutive selects that mix data from one another
      *
@@ -283,11 +295,15 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
      */
     public function findById($id)
     {
-        $select    = $this->getSelect()->where(array($this->getTable() . '.id' => $id));
-        $processor = clone $this->getProcessorPrototype();
-        $processor->setSelect($select);
+        $this->getEventManager()->attach('processedRow', function(Event $event){
+            if($event->getTarget() === $this) {
+                var_dump($event->getParam(0));
+            }
+        });
 
-        $resultSet = $processor->getResultSet();
+        $this->getSelect()->where(array($this->getTable() . '.id' => $id));
+
+        $resultSet = $this->getProcessorClone()->getResultSet();
         if ($resultSet !== null && $resultSet->count() > 0) {
             return $resultSet->current();
         }
@@ -300,10 +316,7 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
      */
     public function fetch()
     {
-        $processor = clone $this->getProcessorPrototype();
-        $processor->setSelect($this->getSelect());
-
-        return $processor;
+        return $this->getProcessorClone();
     }
 
     /**

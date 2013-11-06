@@ -118,7 +118,15 @@ class ResultProcessor implements ResultProcessorInterface
 
         /** @var $row \ArrayObject */
         foreach ($resultSet as $row) {
-            $rows[] = $dataSourceMapper->populate($row->getArrayCopy(), $map);
+            $populateRow = $dataSourceMapper->populate($row->getArrayCopy(), $map);
+
+            $this->getDataSource()->getEventManager()->trigger(
+                'processedRow',
+                $this->getDataSource(),
+                array($populateRow)
+            );
+
+            $rows[] = $populateRow;
         }
 
         return $resultSet->initialize(new \ArrayIterator($rows));
