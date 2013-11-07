@@ -302,6 +302,8 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
     }
 
     /**
+     * Returns a single (mapped or not) entry in the database
+     *
      * @param $id
      * @return mixed
      */
@@ -319,6 +321,8 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
     }
 
     /**
+     * Returns all the information in the database
+     *
      * @return ResultProcessor
      */
     public function fetch()
