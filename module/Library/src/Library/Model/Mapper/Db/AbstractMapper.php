@@ -65,38 +65,4 @@ abstract class AbstractMapper extends StandardAbstractMapper implements MapperIn
     {
         return $this->dataSource;
     }
-
-    /**
-     * Makes sure that the select has been modified if necessary by all the mappers
-     *
-     * @return \Library\Model\Mapper\Db\AbstractMapper
-     */
-    public function prepareSelect()
-    {
-        foreach ($this->map as $field) {
-
-            // Checking if the field uses a mapper so we know
-            // if we dispatch a join request to it
-            if (is_array($field) && $this->useMapper($field)) {
-
-                // Selecting the baseMapper
-                /** @var $baseMapper AbstractMapper */
-                if ($this->parentMapper !== null) {
-                    $baseMapper = $this->parentMapper;
-                } else {
-                    $baseMapper = $this;
-                }
-
-                /** @var $mapper AbstractMapper */
-                $mapper = $this->getMapperFromInfo($field);
-
-                // We do it like this to keep code completion available
-                $mapper->prepareSelect()
-                    ->getDataSource()
-                    ->enhanceSelect($baseMapper->getDataSource(), $field['dataSource']);
-            }
-        }
-
-        return $this;
-    }
 }

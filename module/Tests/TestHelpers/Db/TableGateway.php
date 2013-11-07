@@ -13,5 +13,19 @@ use Library\Model\Db\TableGateway as LibraryTableGateway;
 
 class TableGateway extends LibraryTableGateway
 {
+    public function fetchJoined()
+    {
+        $processor = $this->getProcessorClone();
+        $processor->getSelect()->join(
+            'test2',
+            'test.id = test2.testId',
+            array(
+                'joinedId' => 'id',
+                'joinedField1' => 'field1',
+                'joinedField2' => 'field2',
+            )
+        );
 
+        return $processor;
+    }
 }

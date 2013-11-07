@@ -52,9 +52,15 @@ trait DatabaseCreator
             )
         );
 
-        // This is just a failsafe check
+        // Creating the first schema
         static::$adapter->query(
             file_get_contents(static::$sqlitePaths . '/schema.sqlite.sql'),
+            Adapter::QUERY_MODE_EXECUTE
+        );
+
+        // Creating the second schema
+        static::$adapter->query(
+            file_get_contents(static::$sqlitePaths . '/schema2.sqlite.sql'),
             Adapter::QUERY_MODE_EXECUTE
         );
 

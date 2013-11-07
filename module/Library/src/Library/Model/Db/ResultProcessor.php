@@ -149,24 +149,24 @@ class ResultProcessor implements ResultProcessorInterface
     {
         $dataSourceMapper = $this->getDataSource()->getMapper();
 
-        if ($dataSourceMapper === null) {
-            return $resultSet;
-        }
-
         // Processing the result set using the mapper
         $rows = array();
 
         /** @var $row \ArrayObject */
         foreach ($resultSet as $row) {
-            $populateRow = $dataSourceMapper->populate($row->getArrayCopy(), $map);
+
+            // Populating the data using the mapper (if any)
+            if (null !== $dataSourceMapper) {
+                $row = $dataSourceMapper->populate($row->getArrayCopy(), $map);
+            }
 
             $this->getEventManager()->trigger(
                 static::EVENT_PROCESS_ROW,
                 $this->getDataSource(),
-                array($populateRow)
+                array($row)
             );
 
-            $rows[] = $populateRow;
+            $rows[] = $row;
         }
 
         return $resultSet->initialize(new \ArrayIterator($rows));

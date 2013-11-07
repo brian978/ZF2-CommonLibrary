@@ -7,7 +7,7 @@ array(
         'someFieldName' => 'entityField',
         'joinedId' => array( // This would be the field that triggers the dispatch to another mapper
             'mapper' => array(
-                'entityField2', // Field from the entity to put the result from the dispatched mapper
+                'entityField2', // Field where to put the result
                 'Full\Qualified\Name\Of\Mapper',
             )
         ),
@@ -21,7 +21,7 @@ array(
     'someFieldName' => 'entityField',
     'joinedId' => array( // This would be the field that triggers the dispatch to another mapper
         'mapper' => array(
-            'entityField2', // Field from the entity to put the result from the dispatched mapper
+            'entityField2', // Field where to put the result
             'Full\Qualified\Name\Of\Mapper',
         )
     ),

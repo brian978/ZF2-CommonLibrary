@@ -325,17 +325,4 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
     {
         return $this->getProcessorClone();
     }
-
-    /**
-     * @param string $method
-     * @param array $arguments
-     * @return mixed
-     */
-    public function __call($method, $arguments)
-    {
-        $processor = clone $this->getProcessorPrototype();
-        $processor->setSelect($this->getSelect());
-
-        return call_user_func_array(array($processor, $method), $arguments);
-    }
 }
