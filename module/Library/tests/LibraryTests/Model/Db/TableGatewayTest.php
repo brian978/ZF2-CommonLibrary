@@ -9,7 +9,7 @@
 
 namespace LibraryTests\Model\Db;
 
-use Library\Collection\GatewayTracker;
+use Library\Model\Db\Components\GatewayTracker;
 use Library\Model\Db\ResultProcessorInterface;
 use Library\Model\Db\TableGateway;
 use Tests\TestHelpers\AbstractTest;

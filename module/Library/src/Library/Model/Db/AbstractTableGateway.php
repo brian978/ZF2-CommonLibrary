@@ -9,7 +9,7 @@
 
 namespace Library\Model\Db;
 
-use Library\Collection\GatewayTracker;
+use Library\Model\Db\Components\GatewayTracker;
 use Library\Log\DummyLogger;
 use Library\Model\Mapper\AbstractMapper;
 use Library\Model\Mapper\MapperInterface;
@@ -117,7 +117,7 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
     }
 
     /**
-     * @param \Library\Collection\GatewayTracker $tracker
+     * @param \Library\Model\Db\Components\GatewayTracker $tracker
      *
      * @return AbstractTableGateway
      */
@@ -129,7 +129,7 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
     }
 
     /**
-     * @return \Library\Collection\GatewayTracker
+     * @return \Library\Model\Db\Components\GatewayTracker
      */
     public function getTracker()
     {
@@ -302,7 +302,7 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
 
     /**
      * @param array $rawJoins
-     * @param \Library\Collection\GatewayTracker $tracker
+     * @param \Library\Model\Db\Components\GatewayTracker $tracker
      * @throws \InvalidArgumentException
      * @return $this
      */
@@ -310,7 +310,7 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
     {
         if (is_null($tracker)) {
             throw new \InvalidArgumentException(
-                'The provided tracker is NULL. Should be instance of \Library\Collection\GatewayTracker'
+                'The provided tracker is NULL. Should be instance of \Library\Model\Db\Components\GatewayTracker'
             );
         }
 

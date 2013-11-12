@@ -9,7 +9,7 @@
 
 namespace Library\Model\Db;
 
-use Library\Collection\GatewayTracker;
+use Library\Model\Db\Components\GatewayTracker;
 use Library\Model\Mapper\AbstractMapper;
 
 interface TableInterface

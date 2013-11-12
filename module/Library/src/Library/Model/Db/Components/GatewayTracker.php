@@ -7,8 +7,9 @@
  * @license   Creative Commons Attribution-ShareAlike 3.0
  */
 
-namespace Library\Collection;
+namespace Library\Model\Db\Components;
 
+use Library\Collection\AbstractCollection;
 use Library\Model\Db\TableInterface;
 
 class GatewayTracker extends AbstractCollection
