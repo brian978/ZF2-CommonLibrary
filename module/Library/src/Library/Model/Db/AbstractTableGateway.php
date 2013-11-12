@@ -40,7 +40,7 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
     /**
      * @var GatewayTracker
      */
-    protected $tableTracker;
+    protected $tracker;
 
     /**
      * @var LoggerInterface
@@ -88,7 +88,7 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
 
     public function __sleep()
     {
-        return array('select', 'mapper', 'tableTracker', 'logger', 'processorPrototype');
+        return array('select', 'mapper', 'tracker', 'logger', 'processorPrototype');
     }
 
     /**
@@ -114,6 +114,26 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
         }
 
         return $this->selectWith($select);
+    }
+
+    /**
+     * @param \Library\Collection\GatewayTracker $tracker
+     *
+     * @return AbstractTableGateway
+     */
+    public function setTracker($tracker)
+    {
+        $this->tracker = $tracker;
+
+        return $this;
+    }
+
+    /**
+     * @return \Library\Collection\GatewayTracker
+     */
+    public function getTracker()
+    {
+        return $this->tracker;
     }
 
     /**
@@ -169,14 +189,13 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
         $this->cache = $cache;
         $this->cache->getOptions()->setObject($this);
 
-        // Setting up some wakeup events
+        // Setting up some wake-up events
         /** @var $cacheEventManager EventManager */
         $cacheEventManager = $this->cache->getOptions()->getStorage()->getEventManager();
         $cacheEventManager->attach(
             'getItem.post',
             function (PostEvent $event) {
-                if($event->getResult() instanceof ResultProcessorInterface) {
-
+                if ($event->getResult() instanceof ResultProcessorInterface) {
                 }
             }
         );
@@ -282,6 +301,41 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
     }
 
     /**
+     * @param array $rawJoins
+     * @param \Library\Collection\GatewayTracker $tracker
+     * @throws \InvalidArgumentException
+     * @return $this
+     */
+    protected function attachMappers(array $rawJoins, GatewayTracker $tracker)
+    {
+        if (is_null($tracker)) {
+            throw new \InvalidArgumentException(
+                'The provided tracker is NULL. Should be instance of \Library\Collection\GatewayTracker'
+            );
+        }
+
+        foreach ($rawJoins as $join) {
+            if (is_array($join['name'])) {
+                $tableName = current($join['name']);
+            } else {
+                $tableName = $join['name'];
+            }
+
+            try {
+                $gateway = $tracker->getGateway($tableName);
+                $mapper  = $gateway->getMapper();
+                $this->getMapper()->attachMapper($mapper);
+            } catch (\InvalidArgumentException $e) {
+                $this->getLogger()->debug($e->getMessage());
+            } catch (\RuntimeException $e) {
+                $this->getLogger()->debug($e->getMessage());
+            }
+        }
+
+        return $this;
+    }
+
+    /**
      * Overwritten the method so we can reset the select after each execution
      * to avoid making 2 consecutive selects that mix data from one another
      *
@@ -294,6 +348,11 @@ abstract class AbstractTableGateway extends TableGateway implements TableInterfa
         // Need to clone the platform to avoid random opened connections (especially when testing)
         $platform = clone $this->getAdapter()->getPlatform();
         $this->getLogger()->debug($select->getSqlString($platform));
+
+        $tracker = $this->getTracker();
+        if ($tracker !== null) {
+            $this->attachMappers($select->getRawState(Select::JOINS), $tracker);
+        }
 
         $resultSet    = parent::executeSelect($select);
         $this->select = null;

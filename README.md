@@ -74,3 +74,8 @@ the result from the ResultProcessor method call. The cache should cascade to the
 from the TableGateway.
 
 *Solution 1:* Pending...
+
+**Issue 4:** What would happen with the map given to the getResultSet() method if automatic mapping on join would be
+implemented?
+
+*Solution 1:* Pending...

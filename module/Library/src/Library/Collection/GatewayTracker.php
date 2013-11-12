@@ -22,8 +22,9 @@ class GatewayTracker extends AbstractCollection
     {
         $tableName = $gateway->getTable();
 
+        // Registering the gateway
         if (!isset($this->collection[$tableName])) {
-            $this->collection[$tableName] = $gateway;
+            $this->collection[$tableName] = $gateway->setTracker($this);
         } elseif ($this->collection[$tableName] !== $gateway) {
             throw new \InvalidArgumentException('The table is tracked using another gateway.');
         }
@@ -45,6 +46,6 @@ class GatewayTracker extends AbstractCollection
             }
         }
 
-        throw new \RuntimeException('A gateway for the requested table was not found');
+        throw new \RuntimeException('A gateway for the requested table (' . $table . ') was not found');
     }
 }

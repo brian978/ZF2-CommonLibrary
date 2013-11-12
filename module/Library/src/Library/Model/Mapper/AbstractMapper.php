@@ -360,10 +360,15 @@ class AbstractMapper implements MapperInterface
      * @param AbstractMapper $mapper
      *
      * @throws \RuntimeException
+     * @throws \InvalidArgumentException
      * @return MapperInterface
      */
     public function attachMapper(AbstractMapper $mapper)
     {
+        if($mapper === null) {
+            throw new \InvalidArgumentException('The provided mapper is NULL');
+        }
+
         if ($mapper->getParentMapper() !== null && $mapper->getParentMapper() !== $this) {
             throw new \RuntimeException('Cannot attach the mapper because it already has a parent');
         }

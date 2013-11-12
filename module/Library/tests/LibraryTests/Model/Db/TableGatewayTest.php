@@ -9,6 +9,7 @@
 
 namespace LibraryTests\Model\Db;
 
+use Library\Collection\GatewayTracker;
 use Library\Model\Db\ResultProcessorInterface;
 use Library\Model\Db\TableGateway;
 use Tests\TestHelpers\AbstractTest;
@@ -176,6 +177,68 @@ class TableGatewayTest extends AbstractTest
 
         $table->setMapper($mapperMock);
         $table2->setMapper($mapperMock2);
+
+        /** @var $object \Library\Model\Db\ResultProcessor */
+        $object    = $table->fetchJoined();
+        $resultSet = $object->getResultSet();
+
+        /** @var $currentResult \Tests\TestHelpers\Model\Entity\MockEntity */
+        $currentResult = $resultSet->current();
+
+        $this->assertInstanceOf('\Zend\Db\ResultSet\ResultSet', $resultSet);
+        $this->assertInstanceOf('\Tests\TestHelpers\Model\Entity\MockEntity', $currentResult);
+        $this->assertInstanceOf('\Tests\TestHelpers\Model\Entity\MockEntity', $currentResult->getTestField2());
+    }
+
+    public function testCanReturnJoinedMapperResultUsingTracketGateways()
+    {
+        /**
+         * ------------------------------------
+         * CREATING THE MOCKS FOR THE MAPPERS
+         * ------------------------------------
+         */
+        /** @var $mapperMock \Library\Model\Mapper\AbstractMapper */
+        $mapperMock = $this->getMockBuilder('\Library\Model\Mapper\AbstractMapper')
+            ->getMockForAbstractClass();
+
+        // Updating the map in the mapper
+        $mapperMock->setEntityClass('\Tests\TestHelpers\Model\Entity\MockEntity');
+
+        // Creating a clone for the mapper to set up 2 different mappers
+        // and to be able to attach it to the first mapper
+        $mapperMock2 = clone $mapperMock;
+
+        $mapperMock->setMap(
+            array(
+                'id' => 'id',
+                'field1' => 'testField1',
+                'joinedId' => array(
+                    'mapper' => array(
+                        'testField2', // Field where to put the result
+                        get_class($mapperMock2),
+                    )
+                )
+            )
+        );
+
+        $mapperMock2->setMap(
+            array(
+                'id' => 'id',
+                'field1' => 'testField1',
+                'field2' => 'testField2',
+            )
+        );
+
+        $table  = new TestTableGateway(self::$adapter, 'test');
+        $table2 = new TestTableGateway(self::$adapter, 'test2');
+
+        $table->setMapper($mapperMock);
+        $table2->setMapper($mapperMock2);
+
+        // Tracking the mappers
+        $tracker = new GatewayTracker();
+        $tracker->track($table)
+            ->track($table2);
 
         /** @var $object \Library\Model\Db\ResultProcessor */
         $object    = $table->fetchJoined();
