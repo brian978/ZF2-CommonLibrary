@@ -9,13 +9,27 @@
 
 namespace Library\Model\Mapper;
 
+use Library\Model\Entity\AbstractEntity;
+
 interface MapperInterface
 {
     /**
+     * The method converts and array of data (or an object that can be iterated as an array)
+     * to a set of objects
+     *
      * @param mixed $data
      * @return mixed
      */
     public function populate($data);
+
+    /**
+     * The method does the opposite of the populate method
+     *
+     * @param \Library\Model\Entity\AbstractEntity $object
+     * @param mixed $map Can be either a string or a Map object
+     * @return array
+     */
+    public function extract(AbstractEntity $object, $map = null);
 
     /**
      * @return \Library\Model\Entity\AbstractEntity

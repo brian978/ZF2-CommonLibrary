@@ -7,19 +7,19 @@
  * @license   Creative Commons Attribution-ShareAlike 3.0
  */
 
-namespace Library\Model\Db\Components;
+namespace Library\Model\Db\Collection;
 
 use Library\Collection\AbstractCollection;
-use Library\Model\Db\TableInterface;
+use Library\Model\Db\TableGatewayInterface;
 
 class GatewayTracker extends AbstractCollection
 {
     /**
-     * @param TableInterface $gateway
+     * @param TableGatewayInterface $gateway
      * @throws \InvalidArgumentException
      * @return $this
      */
-    public function track(TableInterface $gateway)
+    public function track(TableGatewayInterface $gateway)
     {
         $tableName = $gateway->getTable();
 
@@ -35,12 +35,12 @@ class GatewayTracker extends AbstractCollection
 
     /**
      * @param $table
-     * @return TableInterface
+     * @return TableGatewayInterface
      * @throws \RuntimeException
      */
     public function getGateway($table)
     {
-        /** @var $object TableInterface */
+        /** @var $object TableGatewayInterface */
         foreach ($this->collection as $tableName => $object) {
             if ($tableName === $table) {
                 return $object;

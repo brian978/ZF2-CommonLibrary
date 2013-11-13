@@ -9,6 +9,7 @@
 
 namespace Library\Model\Mapper;
 
+use Library\Model\Entity\AbstractEntity;
 use Library\Model\Entity\EntityInterface;
 use Library\Model\Mapper\Exception\MapperNotFoundException;
 use Library\Model\Mapper\Exception\WrongDataTypeException;
@@ -241,6 +242,25 @@ class AbstractMapper implements MapperInterface
     }
 
     /**
+     * @param Map $map
+     * @return array
+     */
+    protected function selectMap(Map $map)
+    {
+        // Getting the map name
+        $mapName = $map->getName();
+
+        // Selecting the map
+        if (isset($this->map[$mapName])) {
+            $selectedMap = $this->map[$mapName];
+        } else {
+            $selectedMap = $this->map;
+        }
+
+        return $selectedMap;
+    }
+
+    /**
      * @param mixed $data
      * @param Map $map
      * @throws Exception\WrongDataTypeException
@@ -256,23 +276,16 @@ class AbstractMapper implements MapperInterface
             throw new WrongDataTypeException($message);
         }
 
-        // Creating a default map
-        if(is_null($map) || is_string($map)) {
+        // Creating a map object
+        if (is_null($map) || is_string($map)) {
             $map = new Map($map);
         }
 
         // Creating the object to use (may throw exception if no entity class is provided)
         $object = $this->createEntityObject();
 
-        // Getting the map name
-        $mapName = $map->getName();
-
-        // Selecting the map
-        if (isset($this->map[$mapName])) {
-            $selectedMap = $this->map[$mapName];
-        } else {
-            $selectedMap = $this->map;
-        }
+        // Selecting the map from the ones available
+        $selectedMap = $this->selectMap($map);
 
         // Populating the object
         foreach ($data as $key => $value) {
@@ -287,6 +300,66 @@ class AbstractMapper implements MapperInterface
         }
 
         return $object;
+    }
+
+    /**
+     * Flips the selected map
+     *
+     * @param array $map
+     * @return array
+     */
+    protected function flipMap(array $map)
+    {
+        $flipped = array();
+        foreach ($map as $fromField => $toField) {
+            if (is_string($toField) || is_numeric($toField)) {
+                $flipped[$toField] = $fromField;
+            }
+        }
+
+        return $flipped;
+    }
+
+    /**
+     * @param \Library\Model\Entity\AbstractEntity $object
+     * @param mixed $map Can be either a string or a Map object
+     * @return array
+     */
+    public function extract(AbstractEntity $object, $map = null)
+    {
+        // Creating a map object
+        if (is_null($map) || is_string($map)) {
+            $map = new Map($map);
+        }
+
+        $result = array();
+
+        // Selecting the map from the ones available
+        $selectedMap = $this->selectMap($map);
+
+        // We need to flip the values and the field names in the map because
+        // we need to do the reverse operation of the populate
+        $reversedMap = $this->flipMap($selectedMap);
+
+        // Extracting the first layer of the results
+        $tmpResult = $object->toArray();
+
+        // Creating the result
+        foreach ($tmpResult as $field => $value) {
+            if ($value instanceof AbstractEntity) {
+                $mapperHandler = $this->findMapperForObject($value);
+                $extracted     = $mapperHandler->extract($value, $map);
+                $result        = array_merge($result, $extracted);
+            } else {
+                // We only need to extract the fields that are in the map
+                // (the populate() method does the exact thing - only sets data that is in the map)
+                if (isset($reversedMap[$field])) {
+                    $result[$reversedMap[$field]] = $value;
+                }
+            }
+        }
+
+        return $result;
     }
 
     /**
@@ -365,7 +438,7 @@ class AbstractMapper implements MapperInterface
      */
     public function attachMapper(AbstractMapper $mapper)
     {
-        if($mapper === null) {
+        if ($mapper === null) {
             throw new \InvalidArgumentException('The provided mapper is NULL');
         }
 
@@ -424,5 +497,34 @@ class AbstractMapper implements MapperInterface
         }
 
         return $this->baseMapper;
+    }
+
+    /**
+     *
+     * @param AbstractEntity $object
+     * @param string $objectClass
+     * @return AbstractMapper|null
+     */
+    public function findMapperForObject(AbstractEntity $object, $objectClass = null)
+    {
+        if ($objectClass === null) {
+            $objectClass = trim(get_class($object), '\\');
+        }
+
+        /** @var $mapper AbstractMapper */
+        foreach ($this->mappers as $mapper) {
+
+            // Checking if we have found the mapper
+            if (strcasecmp(trim($mapper->getEntityClass(), '\\'), $objectClass) === 0) {
+                return $mapper;
+            }
+
+            // Searching for the mapper in the other mappers (recursive)
+            if (($handler = $mapper->findMapperForObject($object, $objectClass)) !== null) {
+                return $handler;
+            }
+        }
+
+        return null;
     }
 }

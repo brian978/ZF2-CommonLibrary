@@ -16,7 +16,6 @@ use Tests\TestHelpers\Model\Mapper\MockMapper;
 use Tests\TestHelpers\Model\Mapper\MockMapper2;
 use Tests\TestHelpers\Model\Mapper\MockMapper3;
 use Tests\TestHelpers\Traits\AdapterTrait;
-use Zend\Db\Adapter\Adapter;
 
 class MapperTest extends AbstractTest
 {
@@ -182,7 +181,7 @@ class MapperTest extends AbstractTest
 
     public function testCanGetBaseMapper()
     {
-        $mapper = new MockMapper();
+        $mapper  = new MockMapper();
         $mapper2 = new MockMapper2();
         $mapper3 = new MockMapper3();
 
@@ -194,7 +193,7 @@ class MapperTest extends AbstractTest
 
     public function testCanReturnSelfAsBaseMapper()
     {
-        $mapper = new MockMapper();
+        $mapper  = new MockMapper();
         $mapper2 = new MockMapper2();
 
         $mapper->attachMapper($mapper2);
@@ -204,7 +203,7 @@ class MapperTest extends AbstractTest
 
     public function testCanGetBaseMapperAfterAttachedToAnotherMapper()
     {
-        $mapper = new MockMapper();
+        $mapper  = new MockMapper();
         $mapper2 = new MockMapper2();
         $mapper3 = new MockMapper3();
 
@@ -218,5 +217,21 @@ class MapperTest extends AbstractTest
         $mapper->attachMapper($mapper2);
 
         $this->assertEquals($mapper, $mapper3->getBaseMapper());
+    }
+
+    public function testMapperCanExtractData()
+    {
+        $mapper = (new MockMapper())->attachMapper(new MockMapper2());
+        $data   = array(
+            'id' => 1,
+            'field1' => 'test',
+            'joinedId' => 2,
+            'joinedField1' => 'test_joined'
+        );
+
+        $object    = $mapper->populate($data);
+        $extracted = $mapper->extract($object);
+
+        $this->assertEquals($data, $extracted);
     }
 }

@@ -9,10 +9,11 @@
 
 namespace Library\Model\Db;
 
-use Library\Model\Db\Components\GatewayTracker;
+use Library\Model\Db\Collection\GatewayTracker;
 use Library\Model\Mapper\AbstractMapper;
+use Zend\Db\TableGateway\TableGatewayInterface as ZendTableGatewayInterface;
 
-interface TableInterface
+interface TableGatewayInterface extends ZendTableGatewayInterface
 {
     /**
      * Get table name
@@ -24,7 +25,7 @@ interface TableInterface
     /**
      * @param GatewayTracker $tracker
      *
-     * @return TableInterface
+     * @return TableGatewayInterface
      */
     public function setTracker($tracker);
 

@@ -12,7 +12,7 @@ namespace Library\Collection;
 abstract class AbstractCollection implements CollectionInterface
 {
     /**
-     * An array of tracked TableInterface objects
+     * An array of tracked TableGatewayInterface objects
      *
      * @var array
      */

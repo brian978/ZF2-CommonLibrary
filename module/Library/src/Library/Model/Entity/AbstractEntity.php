@@ -47,14 +47,18 @@ abstract class AbstractEntity implements EntityInterface
         $objectMethods    = $reflectionClass->getMethods(\ReflectionMethod::IS_PUBLIC);
         $objectProperties = array();
 
+        // We need the method to be in the order they are declared (not reversed)
+        $objectMethods = array_reverse($objectMethods);
+
         // Getting the names of the methods
         array_walk(
             $objectMethods,
-            function (&$value, $index) use ($objectMethods, &$objectProperties) {
+            function ($value, $index) use ($objectMethods, &$objectProperties) {
                 $methodName = $objectMethods[$index]->getName();
                 if (strpos($methodName, 'get') === 0) {
                     $objectProperties[lcfirst(substr($methodName, 3))] = $methodName;
                 }
+                unset($value);
             }
         );
 
