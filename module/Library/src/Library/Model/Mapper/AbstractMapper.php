@@ -513,11 +513,6 @@ class AbstractMapper implements MapperInterface
             $objectClass = trim(get_class($object), '\\');
         }
 
-        // Checking if this is a object handler (may happen but unlikely)
-        if (strcasecmp(trim($this->getEntityClass(), '\\'), $objectClass) === 0) {
-            return $this;
-        }
-
         // This section will be first executed by the baseMapper
         /** @var $mapper AbstractMapper */
         foreach ($this->mappers as $mapper) {
