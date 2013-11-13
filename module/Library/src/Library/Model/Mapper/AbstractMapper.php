@@ -501,6 +501,8 @@ class AbstractMapper implements MapperInterface
 
     /**
      *
+     * TODO: Implement failsafes
+     *
      * @param AbstractEntity $object
      * @param string $objectClass
      * @return AbstractMapper|null
@@ -511,6 +513,12 @@ class AbstractMapper implements MapperInterface
             $objectClass = trim(get_class($object), '\\');
         }
 
+        // Checking if this is a object handler (may happen but unlikely)
+        if (strcasecmp(trim($this->getEntityClass(), '\\'), $objectClass) === 0) {
+            return $this;
+        }
+
+        // This section will be first executed by the baseMapper
         /** @var $mapper AbstractMapper */
         foreach ($this->mappers as $mapper) {
 
