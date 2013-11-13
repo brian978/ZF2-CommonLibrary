@@ -501,7 +501,7 @@ class AbstractMapper implements MapperInterface
 
     /**
      *
-     * TODO: Implement failsafes
+     * TODO: Implement fail-safes
      *
      * @param AbstractEntity $object
      * @param string $objectClass
