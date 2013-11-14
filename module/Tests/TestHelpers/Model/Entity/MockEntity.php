@@ -9,9 +9,9 @@
 
 namespace Tests\TestHelpers\Model\Entity;
 
-use Library\Model\Entity\AbstractEntity;
+use Library\Model\Entity\AbstractMappedEntity;
 
-class MockEntity extends AbstractEntity
+class MockEntity extends AbstractMappedEntity
 {
     /**
      * @var string

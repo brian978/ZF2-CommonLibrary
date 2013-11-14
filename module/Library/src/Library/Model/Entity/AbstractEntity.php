@@ -64,7 +64,9 @@ abstract class AbstractEntity implements EntityInterface
 
         // Getting the properties of the object
         foreach ($objectProperties as $propertyName => $methodName) {
-            $properties[$propertyName] = $this->$propertyName;
+            if ($propertyName !== 'mapper') {
+                $properties[$propertyName] = $this->$propertyName;
+            }
         }
 
         return $properties;

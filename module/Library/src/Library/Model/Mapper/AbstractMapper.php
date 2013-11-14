@@ -99,7 +99,7 @@ class AbstractMapper implements MapperInterface
 
     /**
      * @throws \RuntimeException
-     * @return \Library\Model\Entity\AbstractEntity
+     * @return \Library\Model\Entity\AbstractMappedEntity
      */
     public function createEntityObject()
     {
@@ -107,7 +107,11 @@ class AbstractMapper implements MapperInterface
             throw new \RuntimeException('The class for the entity has not been set');
         }
 
-        return new $this->entityClass();
+        /** @var $entity \Library\Model\Entity\AbstractMappedEntity */
+        $entity = new $this->entityClass();
+        $entity->setMapper($this);
+
+        return $entity;
     }
 
     /**

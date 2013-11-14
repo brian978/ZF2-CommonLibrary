@@ -83,4 +83,8 @@ implemented?
 **Issue 5:** If the mappers use the same entity class then the mappers cannot find a specific mapper using the
 class name of the object that needs to have it's data extracted.
 
-*Solution 1:* Pending...
+*Solution 1:* Add a property in the entities that holds the mapper instance. The problem with this is that this property
+will get exported (can be fixed with a deny list) and it also adds a dependency for the entity (faster method).
+
+*Solution 2:* Add a property in the mapper that will store all the populated objects. This issue with this is that we
+will have to search through all of the entries (slower method).
