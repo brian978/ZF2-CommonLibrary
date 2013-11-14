@@ -15,19 +15,38 @@ use Library\Model\Db\TableGatewayInterface;
 class GatewayTracker extends AbstractCollection
 {
     /**
+     * @var GatewayTracker
+     */
+    protected static $instance = null;
+
+    /**
+     * It uses a Singleton pattern to give the Gateways and auto-track capability
+     *
+     * @return GatewayTracker
+     */
+    public static function getInstance()
+    {
+        if (static::$instance === null) {
+            static::$instance = new static();
+        }
+
+        return static::$instance;
+    }
+
+    /**
      * @param TableGatewayInterface $gateway
      * @throws \InvalidArgumentException
      * @return $this
      */
     public function track(TableGatewayInterface $gateway)
     {
-        $tableName = $gateway->getTable();
+        $table = $gateway->getTable();
 
         // Registering the gateway
-        if (!isset($this->collection[$tableName])) {
-            $this->collection[$tableName] = $gateway->setTracker($this);
-        } elseif ($this->collection[$tableName] !== $gateway) {
-            throw new \InvalidArgumentException('The table is tracked using another gateway.');
+        if (!isset($this->collection[$table])) {
+            $this->collection[$table] = $gateway->setTracker($this);
+        } elseif ($this->collection[$table] !== $gateway) {
+            throw new \InvalidArgumentException('The table (' . $table . ') is tracked using another gateway.');
         }
 
         return $this;

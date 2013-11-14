@@ -79,3 +79,8 @@ from the TableGateway.
 implemented?
 
 *Solution 1:* Pending...
+
+**Issue 5:** If the mappers use the same entity class then the mappers cannot find a specific mapper using the
+class name of the object that needs to have it's data extracted.
+
+*Solution 1:* Pending...

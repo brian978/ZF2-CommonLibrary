@@ -21,6 +21,11 @@ class TableGatewayTest extends AbstractTest
 {
     use DatabaseCreator;
 
+    public function tearDown()
+    {
+        GatewayTracker::getInstance()->flush();
+    }
+
     /**
      * @param $dir
      */
@@ -234,11 +239,6 @@ class TableGatewayTest extends AbstractTest
 
         $table->setMapper($mapperMock);
         $table2->setMapper($mapperMock2);
-
-        // Tracking the mappers
-        $tracker = new GatewayTracker();
-        $tracker->track($table)
-            ->track($table2);
 
         /** @var $object \Library\Model\Db\ResultProcessor */
         $object    = $table->fetchJoined();

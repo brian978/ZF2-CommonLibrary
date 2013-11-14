@@ -434,7 +434,7 @@ class AbstractMapper implements MapperInterface
      *
      * @throws \RuntimeException
      * @throws \InvalidArgumentException
-     * @return MapperInterface
+     * @return AbstractMapper
      */
     public function attachMapper(AbstractMapper $mapper)
     {
@@ -501,16 +501,23 @@ class AbstractMapper implements MapperInterface
 
     /**
      *
-     * TODO: Implement fail-safes
-     *
      * @param AbstractEntity $object
      * @param string $objectClass
+     * @param bool $firstCall
      * @return AbstractMapper|null
      */
-    public function findMapperForObject(AbstractEntity $object, $objectClass = null)
+    public function findMapperForObject(AbstractEntity $object, $objectClass = null, $firstCall = true)
     {
         if ($objectClass === null) {
             $objectClass = trim(get_class($object), '\\');
+        }
+
+        if ($firstCall === true) {
+            if (strcasecmp(trim($this->getEntityClass(), '\\'), $objectClass)) {
+                return $this;
+            } else {
+                return $this->getBaseMapper()->findMapperForObject($object, $objectClass, false);
+            }
         }
 
         // This section will be first executed by the baseMapper
@@ -523,7 +530,7 @@ class AbstractMapper implements MapperInterface
             }
 
             // Searching for the mapper in the other mappers (recursive)
-            if (($handler = $mapper->findMapperForObject($object, $objectClass)) !== null) {
+            if (($handler = $mapper->findMapperForObject($object, $objectClass, false)) !== null) {
                 return $handler;
             }
         }

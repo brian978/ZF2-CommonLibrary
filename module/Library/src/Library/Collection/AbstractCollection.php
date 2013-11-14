@@ -19,6 +19,18 @@ abstract class AbstractCollection implements CollectionInterface
     protected $collection = array();
 
     /**
+     * Removes all the elements in the collection
+     *
+     * @return $this
+     */
+    public function flush()
+    {
+        $this->collection = array();
+
+        return $this;
+    }
+
+    /**
      * (PHP 5 &gt;= 5.0.0)<br/>
      * Return the current element
      *

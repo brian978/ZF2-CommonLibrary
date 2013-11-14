@@ -63,6 +63,14 @@ abstract class AbstractTableGateway extends TableGateway implements TableGateway
     protected $eventManager;
 
     /**
+     * The property is used to determine if a call to the track() method from the singleton GatewayTracker should be
+     * made
+     *
+     * @var bool
+     */
+    protected $autoTrack = true;
+
+    /**
      * Constructor
      *
      * @param AdapterInterface $adapter
@@ -84,6 +92,11 @@ abstract class AbstractTableGateway extends TableGateway implements TableGateway
         }
 
         parent::__construct($table, $adapter, $features, $resultSetPrototype, $sql);
+
+        // Tracking the gateway
+        if($this->autoTrack === true) {
+            GatewayTracker::getInstance()->track($this);
+        }
     }
 
     public function __sleep()
