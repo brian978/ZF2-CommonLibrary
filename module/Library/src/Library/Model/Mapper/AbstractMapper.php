@@ -13,6 +13,7 @@ use Library\Model\Entity\AbstractEntity;
 use Library\Model\Entity\EntityInterface;
 use Library\Model\Mapper\Exception\MapperNotFoundException;
 use Library\Model\Mapper\Exception\WrongDataTypeException;
+use Zend\EventManager\EventManager;
 
 class AbstractMapper implements MapperInterface
 {
@@ -51,11 +52,39 @@ class AbstractMapper implements MapperInterface
 
     /**
      * The array holds the associations between a method and a property
-     * It is used for both the setters and the getters
+     * It is used for both the setters and the getters and it acts like a cache
      *
      * @var array
      */
     protected $propertyToMethod = array();
+
+    /**
+     * @var EventManager
+     */
+    protected $eventManager;
+
+    /**
+     * @param \Zend\EventManager\EventManager $eventManager
+     * @return AbstractMapper
+     */
+    public function setEventManager($eventManager)
+    {
+        $this->eventManager = $eventManager;
+
+        return $this;
+    }
+
+    /**
+     * @return \Zend\EventManager\EventManager
+     */
+    public function getEventManager()
+    {
+        if (empty($this->eventManager)) {
+            $this->eventManager = new EventManager();
+        }
+
+        return $this->eventManager;
+    }
 
     /**
      * @param array $map
@@ -265,8 +294,22 @@ class AbstractMapper implements MapperInterface
     }
 
     /**
+     * @param null|string $map
+     * @return Map|null
+     */
+    protected function createMapFromArg($map = null)
+    {
+        // Creating a map object
+        if (is_null($map) || is_string($map)) {
+            $map = new Map($map);
+        }
+
+        return $map;
+    }
+
+    /**
      * @param mixed $data
-     * @param Map $map
+     * @param null|string|Map $map
      * @throws Exception\WrongDataTypeException
      *
      * @return EntityInterface
@@ -281,9 +324,7 @@ class AbstractMapper implements MapperInterface
         }
 
         // Creating a map object
-        if (is_null($map) || is_string($map)) {
-            $map = new Map($map);
-        }
+        $map = $this->createMapFromArg($map);
 
         // Creating the object to use (may throw exception if no entity class is provided)
         $object = $this->createEntityObject();
@@ -331,12 +372,10 @@ class AbstractMapper implements MapperInterface
      */
     public function extract(AbstractEntity $object, $map = null)
     {
-        // Creating a map object
-        if (is_null($map) || is_string($map)) {
-            $map = new Map($map);
-        }
-
         $result = array();
+
+        // Creating a map object
+        $map = $this->createMapFromArg($map);
 
         // Selecting the map from the ones available
         $selectedMap = $this->selectMap($map);
@@ -354,6 +393,10 @@ class AbstractMapper implements MapperInterface
                 $mapperHandler = $this->findMapperForObject($value);
                 $extracted     = $mapperHandler->extract($value, $map);
                 $result        = array_merge($result, $extracted);
+
+                // Letting the listeners know that we extracted some data using a mapper other than the
+                // one the current one
+                $this->getEventManager()->trigger('data.extracted', $this, [$extracted, $mapperHandler]);
             } else {
                 // We only need to extract the fields that are in the map
                 // (the populate() method does the exact thing - only sets data that is in the map)
