@@ -9,7 +9,7 @@
 
 namespace Tests\TestHelpers\Model\Entity;
 
-class ArrayMockEntity extends MockEntity
+class ArrayMockEntity extends MappedMockEntity
 {
     /**
      * @var string
@@ -18,7 +18,7 @@ class ArrayMockEntity extends MockEntity
 
     /**
      * @param string $testField2
-     * @return MockEntity
+     * @return MappedMockEntity
      */
     public function setTestField2($testField2)
     {

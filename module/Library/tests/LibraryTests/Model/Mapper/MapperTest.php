@@ -10,7 +10,7 @@
 namespace LibraryTests\Model\Mapper;
 
 use Tests\TestHelpers\AbstractTest;
-use Tests\TestHelpers\Model\Entity\MockEntity;
+use Tests\TestHelpers\Model\Entity\MappedMockEntity;
 use Tests\TestHelpers\Model\Mapper\DefaultMockMapper;
 use Tests\TestHelpers\Model\Mapper\MockMapper;
 use Tests\TestHelpers\Model\Mapper\MockMapper2;
@@ -33,8 +33,29 @@ class MapperTest extends AbstractTest
 
         $object = $mapper->populate($data);
 
+        $this->assertInstanceOf('\Tests\TestHelpers\Model\Entity\MappedMockEntity', $object);
+        $this->assertInstanceOf('\Tests\TestHelpers\Model\Entity\MappedMockEntity', $object->getTestField2());
+        $this->assertEquals('asdadsad', $object->getTestField1());
+        $this->assertEquals('asdad', $object->getTestField2()->getTestField1());
+    }
+
+    public function testCanMapAndLinkObjectsWithoutAMapperEntity()
+    {
+        $data = array(
+            'id' => 1,
+            'field1' => 'asdadsad',
+            'joinedId' => 2,
+            'joinedField1' => 'asdad',
+        );
+
+        $mapper = new MockMapper();
+        $mapper->setEntityClass('\Tests\TestHelpers\Model\Entity\MockEntity');
+        $mapper->attachMapper(new MockMapper2());
+
+        $object = $mapper->populate($data);
+
         $this->assertInstanceOf('\Tests\TestHelpers\Model\Entity\MockEntity', $object);
-        $this->assertInstanceOf('\Tests\TestHelpers\Model\Entity\MockEntity', $object->getTestField2());
+        $this->assertInstanceOf('\Tests\TestHelpers\Model\Entity\MappedMockEntity', $object->getTestField2());
         $this->assertEquals('asdadsad', $object->getTestField1());
         $this->assertEquals('asdad', $object->getTestField2()->getTestField1());
     }
@@ -53,8 +74,8 @@ class MapperTest extends AbstractTest
 
         $object = $mapper->populate($data, 'default');
 
-        $this->assertInstanceOf('\Tests\TestHelpers\Model\Entity\MockEntity', $object);
-        $this->assertInstanceOf('\Tests\TestHelpers\Model\Entity\MockEntity', $object->getTestField2());
+        $this->assertInstanceOf('\Tests\TestHelpers\Model\Entity\MappedMockEntity', $object);
+        $this->assertInstanceOf('\Tests\TestHelpers\Model\Entity\MappedMockEntity', $object->getTestField2());
         $this->assertEquals('asdadsad', $object->getTestField1());
         $this->assertEquals('asdad', $object->getTestField2()->getTestField1());
     }
@@ -90,8 +111,8 @@ class MapperTest extends AbstractTest
 
         $object = $mapper->populate($data);
 
-        $this->assertInstanceOf('\Tests\TestHelpers\Model\Entity\MockEntity', $object);
-        $this->assertInstanceOf('\Tests\TestHelpers\Model\Entity\MockEntity', $object->getTestField2());
+        $this->assertInstanceOf('\Tests\TestHelpers\Model\Entity\MappedMockEntity', $object);
+        $this->assertInstanceOf('\Tests\TestHelpers\Model\Entity\MappedMockEntity', $object->getTestField2());
         $this->assertEquals('asdadsad', $object->getTestField1());
         $this->assertEquals('asdad', $object->getTestField2()->getTestField1());
 
@@ -137,7 +158,7 @@ class MapperTest extends AbstractTest
         // Attaching the mapper that will process the last map
         $mapper2->attachMapper(new MockMapper3());
 
-        /** @var $object MockEntity */
+        /** @var $object MappedMockEntity */
         $object = $mapper->populate($data);
 
         $this->assertEquals('777712313', $object->getTestField2()->getTestField2()->getTestField1());
@@ -175,7 +196,7 @@ class MapperTest extends AbstractTest
 
         $object = $mapper->populate($data);
 
-        $this->assertInstanceOf('\Tests\TestHelpers\Model\Entity\MockEntity', current($object->getTestField2()));
+        $this->assertInstanceOf('\Tests\TestHelpers\Model\Entity\MappedMockEntity', current($object->getTestField2()));
         $this->assertCount(2, $object->getTestField2());
     }
 

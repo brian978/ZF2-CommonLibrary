@@ -74,7 +74,7 @@ class TableGatewayTest extends AbstractTest
             ->getMockForAbstractClass();
 
         // Updating the map in the mapper
-        $mapperMock->setEntityClass('\Tests\TestHelpers\Model\Entity\MockEntity')
+        $mapperMock->setEntityClass('\Tests\TestHelpers\Model\Entity\MappedMockEntity')
             ->setMap(array('default' => array('id' => 'id', 'field1' => 'testField1')));
 
         $tableMock->setMapper($mapperMock);
@@ -93,7 +93,7 @@ class TableGatewayTest extends AbstractTest
             ->getMockForAbstractClass();
 
         // Updating the map in the mapper
-        $mapperMock->setEntityClass('\Tests\TestHelpers\Model\Entity\MockEntity')
+        $mapperMock->setEntityClass('\Tests\TestHelpers\Model\Entity\MappedMockEntity')
             ->setMap(array('test' => array('id' => 'id', 'field1' => 'testField1')));
 
         $tableMock->setMapper($mapperMock);
@@ -120,7 +120,7 @@ class TableGatewayTest extends AbstractTest
         $currentItem  = $currentItems->current();
 
         $this->assertInstanceOf('\Zend\Paginator\Paginator', $paginator);
-        $this->assertInstanceOf('\Tests\TestHelpers\Model\Entity\MockEntity', $currentItem);
+        $this->assertInstanceOf('\Tests\TestHelpers\Model\Entity\MappedMockEntity', $currentItem);
         $this->assertNotEquals(0, $currentItem->getId());
         $this->assertEquals(1, $currentItems->count());
     }
@@ -149,7 +149,7 @@ class TableGatewayTest extends AbstractTest
             ->getMockForAbstractClass();
 
         // Updating the map in the mapper
-        $mapperMock->setEntityClass('\Tests\TestHelpers\Model\Entity\MockEntity');
+        $mapperMock->setEntityClass('\Tests\TestHelpers\Model\Entity\MappedMockEntity');
 
         // Creating a clone for the mapper to set up 2 different mappers
         // and to be able to attach it to the first mapper
@@ -187,12 +187,12 @@ class TableGatewayTest extends AbstractTest
         $object    = $table->fetchJoined();
         $resultSet = $object->getResultSet();
 
-        /** @var $currentResult \Tests\TestHelpers\Model\Entity\MockEntity */
+        /** @var $currentResult \Tests\TestHelpers\Model\Entity\MappedMockEntity */
         $currentResult = $resultSet->current();
 
         $this->assertInstanceOf('\Zend\Db\ResultSet\ResultSet', $resultSet);
-        $this->assertInstanceOf('\Tests\TestHelpers\Model\Entity\MockEntity', $currentResult);
-        $this->assertInstanceOf('\Tests\TestHelpers\Model\Entity\MockEntity', $currentResult->getTestField2());
+        $this->assertInstanceOf('\Tests\TestHelpers\Model\Entity\MappedMockEntity', $currentResult);
+        $this->assertInstanceOf('\Tests\TestHelpers\Model\Entity\MappedMockEntity', $currentResult->getTestField2());
     }
 
     public function testCanReturnJoinedMapperResultUsingTracketGateways()
@@ -207,7 +207,7 @@ class TableGatewayTest extends AbstractTest
             ->getMockForAbstractClass();
 
         // Updating the map in the mapper
-        $mapperMock->setEntityClass('\Tests\TestHelpers\Model\Entity\MockEntity');
+        $mapperMock->setEntityClass('\Tests\TestHelpers\Model\Entity\MappedMockEntity');
 
         // Creating a clone for the mapper to set up 2 different mappers
         // and to be able to attach it to the first mapper
@@ -244,12 +244,12 @@ class TableGatewayTest extends AbstractTest
         $object    = $table->fetchJoined();
         $resultSet = $object->getResultSet();
 
-        /** @var $currentResult \Tests\TestHelpers\Model\Entity\MockEntity */
+        /** @var $currentResult \Tests\TestHelpers\Model\Entity\MappedMockEntity */
         $currentResult = $resultSet->current();
 
         $this->assertInstanceOf('\Zend\Db\ResultSet\ResultSet', $resultSet);
-        $this->assertInstanceOf('\Tests\TestHelpers\Model\Entity\MockEntity', $currentResult);
-        $this->assertInstanceOf('\Tests\TestHelpers\Model\Entity\MockEntity', $currentResult->getTestField2());
+        $this->assertInstanceOf('\Tests\TestHelpers\Model\Entity\MappedMockEntity', $currentResult);
+        $this->assertInstanceOf('\Tests\TestHelpers\Model\Entity\MappedMockEntity', $currentResult->getTestField2());
     }
 
     /**
@@ -278,7 +278,7 @@ class TableGatewayTest extends AbstractTest
             ->getMockForAbstractClass();
 
         // Updating the map in the mapper
-        $mapperMock->setEntityClass('\Tests\TestHelpers\Model\Entity\MockEntity')
+        $mapperMock->setEntityClass('\Tests\TestHelpers\Model\Entity\MappedMockEntity')
             ->setMap(array('id' => 'id', 'field1' => 'testField1'));
 
         // An event to track the cache hit
@@ -320,7 +320,7 @@ class TableGatewayTest extends AbstractTest
             ->getMockForAbstractClass();
 
         // Updating the map in the mapper
-        $mapperMock->setEntityClass('\Tests\TestHelpers\Model\Entity\MockEntity')
+        $mapperMock->setEntityClass('\Tests\TestHelpers\Model\Entity\MappedMockEntity')
             ->setMap(array('id' => 'id', 'field1' => 'testField1'));
 
         /** @var $object \Zend\Db\ResultSet\ResultSet */

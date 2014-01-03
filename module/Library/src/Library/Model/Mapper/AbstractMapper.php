@@ -10,6 +10,7 @@
 namespace Library\Model\Mapper;
 
 use Library\Model\Entity\AbstractEntity;
+use Library\Model\Entity\AbstractMappedEntity;
 use Library\Model\Entity\EntityInterface;
 use Library\Model\Mapper\Exception\MapperNotFoundException;
 use Library\Model\Mapper\Exception\WrongDataTypeException;
@@ -128,7 +129,7 @@ class AbstractMapper implements MapperInterface
 
     /**
      * @throws \RuntimeException
-     * @return \Library\Model\Entity\AbstractMappedEntity
+     * @return AbstractEntity|AbstractMappedEntity
      */
     public function createEntityObject()
     {
@@ -136,9 +137,11 @@ class AbstractMapper implements MapperInterface
             throw new \RuntimeException('The class for the entity has not been set');
         }
 
-        /** @var $entity \Library\Model\Entity\AbstractMappedEntity */
+        /** @var $entity AbstractEntity|AbstractMappedEntity */
         $entity = new $this->entityClass();
-        $entity->setMapper($this);
+        if($entity instanceof AbstractMappedEntity) {
+            $entity->setMapper($this);
+        }
 
         return $entity;
     }

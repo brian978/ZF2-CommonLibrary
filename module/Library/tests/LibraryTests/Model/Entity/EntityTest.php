@@ -10,7 +10,7 @@
 namespace LibraryTests\Model\Entity;
 
 use PHPUnit_Framework_TestCase;
-use Tests\TestHelpers\Model\Entity\MockEntity;
+use Tests\TestHelpers\Model\Entity\MappedMockEntity;
 
 class EntityTest extends PHPUnit_Framework_TestCase
 {
@@ -25,7 +25,7 @@ class EntityTest extends PHPUnit_Framework_TestCase
 
     public function testEntityCanOutputArray()
     {
-        $mock = new MockEntity();
+        $mock = new MappedMockEntity();
         $mock->setId(1);
 
         $this->assertEquals(array('id' => 1, 'testField1' => '', 'testField2' => ''), $mock->toArray());

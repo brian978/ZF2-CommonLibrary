@@ -18,7 +18,7 @@ class MockMapper2 extends AbstractMapper
      *
      * @var string
      */
-    protected $entityClass = '\Tests\TestHelpers\Model\Entity\MockEntity';
+    protected $entityClass = '\Tests\TestHelpers\Model\Entity\MappedMockEntity';
 
     /**
      * The map that will be used to populate the object
