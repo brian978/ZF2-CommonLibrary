@@ -139,7 +139,7 @@ class AbstractMapper implements MapperInterface
 
         /** @var $entity AbstractEntity|AbstractMappedEntity */
         $entity = new $this->entityClass();
-        if($entity instanceof AbstractMappedEntity) {
+        if ($entity instanceof AbstractMappedEntity) {
             $entity->setMapper($this);
         }
 
@@ -224,6 +224,20 @@ class AbstractMapper implements MapperInterface
     }
 
     /**
+     * @param array $mappingInfo
+     * @return Map
+     */
+    protected function getMapFromInfo(array $mappingInfo)
+    {
+        $mapName = '';
+        if (isset($mappingInfo['mapper'][2])) {
+            $mapName = $mappingInfo['mapper'][2];
+        }
+
+        return new Map($mapName);
+    }
+
+    /**
      * @param EntityInterface $object
      * @param string $propertyName
      * @param string $value
@@ -239,8 +253,8 @@ class AbstractMapper implements MapperInterface
     /**
      * @param EntityInterface $object
      * @param array $mappingInfo
-     * @param mixed $value
-     * @param array $data
+     * @param mixed $value This is a single value from the $data array
+     * @param array $data The entire array of data to be populated
      */
     protected function populateUsingMapper(EntityInterface $object, array $mappingInfo, $value, array $data = array())
     {
@@ -251,6 +265,7 @@ class AbstractMapper implements MapperInterface
         if (is_callable(array($object, $methodName))) {
             $mapper         = $this->getMapperFromInfo($mappingInfo);
             $dataToPopulate = $data;
+            $map            = $this->getMapFromInfo($mappingInfo);
 
             // When the $value is not an array it probably means that the data
             // is mixed in a huge array and certain mappers handle certain data
@@ -263,16 +278,16 @@ class AbstractMapper implements MapperInterface
 
                     // Populating the object with the objects created from the arrays
                     foreach ($dataToPopulate as $newData) {
-                        $object->$methodName($mapper->populate($newData));
+                        $object->$methodName($mapper->populate($newData, $map));
                     }
 
-                    // Resetting the data to we won't populate it one more times
+                    // Resetting the data to we won't populate it one more time
                     $dataToPopulate = array();
                 }
             }
 
             if (!empty($dataToPopulate)) {
-                $object->$methodName($mapper->populate($dataToPopulate));
+                $object->$methodName($mapper->populate($dataToPopulate, $map));
             }
         }
     }

@@ -255,4 +255,55 @@ class MapperTest extends AbstractTest
 
         $this->assertEquals($data, $extracted);
     }
+
+    public function testCanMapNestedArrayAndLinkObjectsWithDifferentMaps()
+    {
+        $data = array(
+            'id' => 1,
+            'field1' => 'asdadsad',
+            'entity2' => array(
+                'joinedId' => 2,
+                'joinedField1' => 'asdad',
+            )
+        );
+
+        $mapper  = new MockMapper();
+        $mapper2 = new MockMapper2();
+        $mapper->attachMapper($mapper2);
+
+        // Changing the default map to the desired one
+        $mapper->setMap(
+            array(
+                'default' => array(
+                    'id' => 'id',
+                    'field1' => 'testField1',
+                    'entity2' => array(
+                        'mapper' => array(
+                            'testField2',
+                            'Tests\TestHelpers\Model\Mapper\MockMapper2',
+                            'customMap'
+                        )
+                    )
+                )
+            )
+        );
+
+        $mapper2->setMap(
+            array(
+                'customMap' => array(
+                    'joinedId' => 'id',
+                    'joinedField1' => 'testField1',
+                )
+            )
+        );
+
+        $object = $mapper->populate($data);
+
+        $this->assertInstanceOf('\Tests\TestHelpers\Model\Entity\MappedMockEntity', $object);
+        $this->assertInstanceOf('\Tests\TestHelpers\Model\Entity\MappedMockEntity', $object->getTestField2());
+        $this->assertEquals('asdadsad', $object->getTestField1());
+        $this->assertEquals('asdad', $object->getTestField2()->getTestField1());
+
+        return array(array($mapper, $mapper2));
+    }
 }
