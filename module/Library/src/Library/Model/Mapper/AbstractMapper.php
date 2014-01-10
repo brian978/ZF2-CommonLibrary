@@ -414,7 +414,7 @@ class AbstractMapper implements MapperInterface
 
                 // Letting the listeners know that we extracted some data using a mapper other than the
                 // one the current one
-                $this->getEventManager()->trigger('data.extracted', $this, [$extracted, $mapperHandler]);
+                $this->getEventManager()->trigger('data.extracted', $this, array($extracted, $mapperHandler));
             } else {
                 // We only need to extract the fields that are in the map
                 // (the populate() method does the exact thing - only sets data that is in the map)

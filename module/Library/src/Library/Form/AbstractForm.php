@@ -15,7 +15,6 @@ use Library\Components\TranslatorAwareObject;
 use Library\Form\Fieldset\AbstractFieldset;
 use Zend\Form\FieldsetInterface;
 use Zend\Form\Form;
-use Zend\I18n\Translator\Translator;
 use Zend\I18n\Translator\TranslatorAwareInterface;
 use Zend\InputFilter\InputFilter;
 use Library\Log\LoggerAwareInterface;

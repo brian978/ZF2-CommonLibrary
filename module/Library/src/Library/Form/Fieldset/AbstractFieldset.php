@@ -13,7 +13,6 @@ use Library\Components\LoggerAwareObject;
 use Library\Components\ServiceLocatorAwareObject;
 use Library\Components\TranslatorAwareObject;
 use Zend\Form\Fieldset;
-use Zend\I18n\Translator\Translator;
 use Zend\I18n\Translator\TranslatorAwareInterface;
 use Zend\InputFilter\InputFilterProviderInterface;
 use Library\Log\LoggerAwareInterface;
