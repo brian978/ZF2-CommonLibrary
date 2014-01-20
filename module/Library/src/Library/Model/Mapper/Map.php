@@ -17,6 +17,15 @@ class Map
     protected $name = 'default';
 
     /**
+     * Contains the specifications of the map (like what field to map to what field)
+     *
+     * This replaces the map in the mapper
+     *
+     * @var array
+     */
+    protected $specs = array();
+
+    /**
      * @param string $name
      */
     public function __construct($name = '')
@@ -45,5 +54,41 @@ class Map
     public function getName()
     {
         return $this->name;
+    }
+
+    /**
+     * @param array $specs
+     * @return $this
+     */
+    public function setSpecs($specs)
+    {
+        $this->specs = $specs;
+
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getSpecs()
+    {
+        return $this->specs;
+    }
+
+    /**
+     * Flips the map specs (but not permanently - the specs remain untouched)
+     *
+     * @return array
+     */
+    protected function flip()
+    {
+        $flipped = array();
+        foreach ($this->specs as $fromField => $toField) {
+            if (is_string($toField) || is_numeric($toField)) {
+                $flipped[$toField] = $fromField;
+            }
+        }
+
+        return $flipped;
     }
 }

@@ -9,6 +9,7 @@ array(
             'mapper' => array(
                 'entityField2', // Field where to put the result
                 'Full\Qualified\Name\Of\Mapper',
+                'default' // Map name to use
             )
         ),
     )
