@@ -39,6 +39,11 @@ class AbstractMapper implements MapperInterface
     /**
      * @var array
      */
+    protected $maps = array();
+
+    /**
+     * @var array
+     */
     protected $mappers = array();
 
     /**
@@ -63,6 +68,55 @@ class AbstractMapper implements MapperInterface
      * @var EventManager
      */
     protected $eventManager;
+
+    final public function __construct()
+    {
+        $this->convertMap();
+    }
+
+    protected function convertMap()
+    {
+        foreach($this->map as $name => $specs) {
+            $this->addMap(new Map($name, $specs));
+        }
+    }
+
+    /**
+     * @param Map $map
+     * @return mixed
+     */
+    public function addMap(Map $map)
+    {
+        $this->maps[$map->getName()] = $map;
+
+        return $this;
+    }
+
+    /**
+     * @param string $name
+     * @return Map|null
+     */
+    public function findMap($name)
+    {
+        if(isset($this->maps[$name])) {
+            return $this->maps[$name];
+        }
+
+        return null;
+    }
+
+    /**
+     * @param string $name
+     * @return $this
+     */
+    public function removeMap($name)
+    {
+        if(isset($this->maps[$name])) {
+            unset($this->maps[$name]);
+        }
+
+        return $this;
+    }
 
     /**
      * @param \Zend\EventManager\EventManager $eventManager
@@ -95,6 +149,7 @@ class AbstractMapper implements MapperInterface
     public function setMap(array $map)
     {
         $this->map = $map;
+        $this->convertMap();
 
         return $this;
     }
@@ -293,36 +348,12 @@ class AbstractMapper implements MapperInterface
     }
 
     /**
-     * @param Map $map
-     * @return array
+     * @param $map
+     * @return Map
      */
-    protected function selectMap(Map $map)
+    protected function selectMap($map)
     {
-        // Getting the map name
-        $mapName = $map->getName();
-
-        // Selecting the map
-        if (isset($this->map[$mapName])) {
-            $selectedMap = $this->map[$mapName];
-        } else {
-            $selectedMap = $this->map;
-        }
-
-        return $selectedMap;
-    }
-
-    /**
-     * @param null|string $map
-     * @return Map|null
-     */
-    protected function createMapFromArg($map = null)
-    {
-        // Creating a map object
-        if (is_null($map) || is_string($map)) {
-            $map = new Map($map);
-        }
-
-        return $map;
+        return $this->findMap($map instanceof Map ? $map->getName() : ($map == null ? 'default' : $map));
     }
 
     /**
@@ -341,9 +372,6 @@ class AbstractMapper implements MapperInterface
             throw new WrongDataTypeException($message);
         }
 
-        // Creating a map object
-        $map = $this->createMapFromArg($map);
-
         // Creating the object to use (may throw exception if no entity class is provided)
         $object = $this->createEntityObject();
 
@@ -351,36 +379,20 @@ class AbstractMapper implements MapperInterface
         $selectedMap = $this->selectMap($map);
 
         // Populating the object
-        foreach ($data as $key => $value) {
-            if (isset($selectedMap[$key])) {
-                $propertyName = $selectedMap[$key];
-                if (is_string($propertyName)) {
-                    $this->populateUsingString($object, $propertyName, $value);
-                } elseif (is_array($propertyName) && $this->useMapper($propertyName)) {
-                    $this->populateUsingMapper($object, $propertyName, $value, $data);
+        if($selectedMap instanceof Map) {
+            foreach ($data as $key => $value) {
+                if (isset($selectedMap[$key])) {
+                    $propertyName = $selectedMap[$key];
+                    if (is_string($propertyName)) {
+                        $this->populateUsingString($object, $propertyName, $value);
+                    } elseif (is_array($propertyName) && $this->useMapper($propertyName)) {
+                        $this->populateUsingMapper($object, $propertyName, $value, $data);
+                    }
                 }
             }
         }
 
         return $object;
-    }
-
-    /**
-     * Flips the selected map
-     *
-     * @param array $map
-     * @return array
-     */
-    protected function flipMap(array $map)
-    {
-        $flipped = array();
-        foreach ($map as $fromField => $toField) {
-            if (is_string($toField) || is_numeric($toField)) {
-                $flipped[$toField] = $fromField;
-            }
-        }
-
-        return $flipped;
     }
 
     /**
@@ -398,9 +410,14 @@ class AbstractMapper implements MapperInterface
         // Selecting the map from the ones available
         $selectedMap = $this->selectMap($map);
 
+        // No need to continue if we have no map
+        if($selectedMap instanceof Map === false) {
+            return $result;
+        }
+
         // We need to flip the values and the field names in the map because
         // we need to do the reverse operation of the populate
-        $reversedMap = $this->flipMap($selectedMap);
+        $reversedMap = $selectedMap->flip();
 
         // Extracting the first layer of the results
         $tmpResult = $object->toArray();

@@ -98,14 +98,16 @@ class MapperTest extends AbstractTest
         // Changing the default map to the desired one
         $mapper->setMap(
             array(
-                'id' => 'id',
-                'field1' => 'testField1',
-                'entity2' => array(
-                    'mapper' => array(
-                        'testField2',
-                        'Tests\TestHelpers\Model\Mapper\MockMapper2',
-                    )
-                ),
+                'default' => array(
+                    'id' => 'id',
+                    'field1' => 'testField1',
+                    'entity2' => array(
+                        'mapper' => array(
+                            'testField2',
+                            'Tests\TestHelpers\Model\Mapper\MockMapper2',
+                        )
+                    ),
+                )
             )
         );
 
@@ -144,14 +146,16 @@ class MapperTest extends AbstractTest
         // Changing the map in the second mapper
         $mapper2->setMap(
             array(
-                'joinedId' => 'id',
-                'joinedField1' => 'testField1',
-                'entity2' => array(
-                    'mapper' => array(
-                        'testField2',
-                        'Tests\TestHelpers\Model\Mapper\MockMapper3',
-                    )
-                ),
+                'default' => array(
+                    'joinedId' => 'id',
+                    'joinedField1' => 'testField1',
+                    'entity2' => array(
+                        'mapper' => array(
+                            'testField2',
+                            'Tests\TestHelpers\Model\Mapper\MockMapper3',
+                        )
+                    ),
+                )
             )
         );
 

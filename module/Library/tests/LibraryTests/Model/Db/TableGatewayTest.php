@@ -158,12 +158,14 @@ class TableGatewayTest extends AbstractTest
         $mapperMock->attachMapper($mapperMock2);
         $mapperMock->setMap(
             array(
-                'id' => 'id',
-                'field1' => 'testField1',
-                'joinedId' => array(
-                    'mapper' => array(
-                        'testField2', // Field where to put the result
-                        get_class($mapperMock2),
+                'default' => array(
+                    'id' => 'id',
+                    'field1' => 'testField1',
+                    'joinedId' => array(
+                        'mapper' => array(
+                            'testField2', // Field where to put the result
+                            get_class($mapperMock2),
+                        )
                     )
                 )
             )
@@ -171,9 +173,11 @@ class TableGatewayTest extends AbstractTest
 
         $mapperMock2->setMap(
             array(
-                'id' => 'id',
-                'field1' => 'testField1',
-                'field2' => 'testField2',
+                'default' => array(
+                    'id' => 'id',
+                    'field1' => 'testField1',
+                    'field2' => 'testField2',
+                )
             )
         );
 
@@ -215,12 +219,14 @@ class TableGatewayTest extends AbstractTest
 
         $mapperMock->setMap(
             array(
-                'id' => 'id',
-                'field1' => 'testField1',
-                'joinedId' => array(
-                    'mapper' => array(
-                        'testField2', // Field where to put the result
-                        get_class($mapperMock2),
+                'default' => array(
+                    'id' => 'id',
+                    'field1' => 'testField1',
+                    'joinedId' => array(
+                        'mapper' => array(
+                            'testField2', // Field where to put the result
+                            get_class($mapperMock2),
+                        )
                     )
                 )
             )
@@ -228,9 +234,11 @@ class TableGatewayTest extends AbstractTest
 
         $mapperMock2->setMap(
             array(
-                'id' => 'id',
-                'field1' => 'testField1',
-                'field2' => 'testField2',
+                'default' => array(
+                    'id' => 'id',
+                    'field1' => 'testField1',
+                    'field2' => 'testField2',
+                )
             )
         );
 
@@ -279,7 +287,7 @@ class TableGatewayTest extends AbstractTest
 
         // Updating the map in the mapper
         $mapperMock->setEntityClass('\Tests\TestHelpers\Model\Entity\MappedMockEntity')
-            ->setMap(array('id' => 'id', 'field1' => 'testField1'));
+            ->setMap(array('default' => array('id' => 'id', 'field1' => 'testField1')));
 
         // An event to track the cache hit
         $table->getCache()
@@ -321,7 +329,7 @@ class TableGatewayTest extends AbstractTest
 
         // Updating the map in the mapper
         $mapperMock->setEntityClass('\Tests\TestHelpers\Model\Entity\MappedMockEntity')
-            ->setMap(array('id' => 'id', 'field1' => 'testField1'));
+            ->setMap(array('default' => array('id' => 'id', 'field1' => 'testField1')));
 
         /** @var $object \Zend\Db\ResultSet\ResultSet */
         $object = $table->fetch()->cache()->getResultSet();
