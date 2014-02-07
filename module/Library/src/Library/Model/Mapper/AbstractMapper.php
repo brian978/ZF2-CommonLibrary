@@ -404,9 +404,6 @@ class AbstractMapper implements MapperInterface
     {
         $result = array();
 
-        // Creating a map object
-        $map = $this->createMapFromArg($map);
-
         // Selecting the map from the ones available
         $selectedMap = $this->selectMap($map);
 
