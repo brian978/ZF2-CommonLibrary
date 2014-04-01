@@ -75,11 +75,9 @@ class AbstractMapper implements MapperInterface
                     'The class for the entity must implement \Library\Model\Entity\EntityInterface'
                 );
             }
-        } else {
-            $entity = clone $this->entityPrototypes[$className];
         }
 
-        return $entity;
+        return clone $this->entityPrototypes[$className];
     }
 
     /**
