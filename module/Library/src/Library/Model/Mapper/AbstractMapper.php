@@ -32,12 +32,9 @@ class AbstractMapper implements MapperInterface
     protected $entityPrototypes = array();
 
     /**
-     * The array holds the associations between a method and a property
-     * It is used for both the setters and the getters and it acts like a cache
-     *
      * @var array
      */
-    protected $propertyToMethod = array();
+    protected $callableMethods = array();
 
     /**
      * @var EventManager
@@ -92,30 +89,40 @@ class AbstractMapper implements MapperInterface
      */
     protected function createSetterNameFromPropertyName($property)
     {
-        // Creating the association
-        if (!isset($this->propertyToMethod['setter'][$property])) {
-            $this->propertyToMethod['setter'][$property] = preg_replace_callback(
-                '/_([a-z])/',
-                function ($string) {
-                    return ucfirst($string);
-                },
-                'set' . ucfirst($property)
-            );
-        }
-
-        return $this->propertyToMethod['setter'][$property];
+        return preg_replace_callback(
+            '/_([a-z])/',
+            function ($string) {
+                return ucfirst($string);
+            },
+            'set' . ucfirst($property)
+        );
     }
 
     /**
+     * @param string $objectClass
      * @param EntityInterface $object
      * @param string $propertyName
      * @param string $value
      */
-    protected function setProperty(EntityInterface $object, $propertyName, $value)
+    protected function setProperty($objectClass, EntityInterface $object, $propertyName, $value)
     {
-        $methodName = $this->createSetterNameFromPropertyName($propertyName);
-        if (is_callable(array($object, $methodName))) {
-            $object->$methodName($value);
+        if (!isset($this->callableMethods[$objectClass])) {
+            $this->callableMethods[$objectClass] = [];
+        }
+
+        $callableMethods = & $this->callableMethods[$objectClass];
+
+        // Calling the setter
+        if (!isset($callableMethods[$propertyName])) {
+            $methodName = $this->createSetterNameFromPropertyName($propertyName);
+            if (is_callable(array($object, $methodName))) {
+                $object->$methodName($value);
+                $callableMethods[$propertyName] = $methodName;
+            } else {
+                $callableMethods[$propertyName] = false;
+            }
+        } else if ($callableMethods[$propertyName] !== false) {
+            $object->{$callableMethods[$propertyName]}($value);
         }
     }
 
@@ -142,17 +149,23 @@ class AbstractMapper implements MapperInterface
 
         if ($map !== null && isset($map['entity']) && isset($map['specs'])) {
             // Creating the object to populate
-            $specs  = $map['specs'];
-            $object = $this->createEntityObject($map['entity']);
+            $specs       = $map['specs'];
+            $objectClass = $map['entity'];
+            $object      = $this->createEntityObject($objectClass);
 
             // Populating the object
             foreach ($data as $key => $value) {
                 if (isset($specs[$key])) {
                     $property = $specs[$key];
                     if (is_string($property)) {
-                        $this->setProperty($object, $property, $value);
+                        $this->setProperty($objectClass, $object, $property, $value);
                     } elseif (is_array($property) && isset($property['toProperty']) && isset($property['map'])) {
-                        $this->setProperty($object, $property['toProperty'], $this->populate($data, $property['map']));
+                        $this->setProperty(
+                            $objectClass,
+                            $object,
+                            $property['toProperty'],
+                            $this->populate($data, $property['map'])
+                        );
                     }
                 }
             }

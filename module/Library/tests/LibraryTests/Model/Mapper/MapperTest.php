@@ -9,10 +9,10 @@
 
 namespace LibraryTests\Model\Mapper;
 
-use Library\Model\Mapper\MapCollection;
 use Tests\TestHelpers\AbstractTest;
 use Tests\TestHelpers\Model\Entity\MappedMockEntity;
 use Tests\TestHelpers\Model\Mapper\DefaultMockMapper;
+use Tests\TestHelpers\Model\Mapper\MockedMapCollection;
 use Tests\TestHelpers\Model\Mapper\MockMapper;
 use Tests\TestHelpers\Model\Mapper\MockMapper2;
 use Tests\TestHelpers\Model\Mapper\MockMapper3;
@@ -314,7 +314,7 @@ class MapperTest extends AbstractTest
 
     public function testCanUseTheMapToLinkObjects()
     {
-        $mapper = new MockMapper(new MapCollection());
+        $mapper = new MockMapper(new MockedMapCollection());
         $data   = array(
             'id' => 1,
             'field1' => 'test',
