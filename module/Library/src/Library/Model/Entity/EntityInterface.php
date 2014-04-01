@@ -12,17 +12,6 @@ namespace Library\Model\Entity;
 interface EntityInterface
 {
     /**
-     * @param int $id
-     * @return $this
-     */
-    public function setId($id);
-
-    /**
-     * @return int
-     */
-    public function getId();
-
-    /**
      * @return array
      */
     public function toArray();

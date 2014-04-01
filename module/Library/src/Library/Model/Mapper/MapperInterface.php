@@ -9,10 +9,16 @@
 
 namespace Library\Model\Mapper;
 
-use Library\Model\Entity\AbstractEntity;
+use Library\Model\Entity\EntityInterface;
 
 interface MapperInterface
 {
+    /**
+     * @param string $className
+     * @return \Library\Model\Entity\AbstractEntity
+     */
+    public function createEntityObject($className);
+
     /**
      * The method converts and array of data (or an object that can be iterated as an array)
      * to a set of objects
@@ -25,26 +31,9 @@ interface MapperInterface
     /**
      * The method does the opposite of the populate method
      *
-     * @param \Library\Model\Entity\AbstractEntity $object
+     * @param \Library\Model\Entity\EntityInterface $object
      * @param mixed $map Can be either a string or a Map object
      * @return array
      */
-    public function extract(AbstractEntity $object, $map = null);
-
-    /**
-     * @return \Library\Model\Entity\AbstractEntity
-     */
-    public function createEntityObject();
-
-    /**
-     * @param AbstractMapper $mapper
-     * @return MapperInterface
-     */
-    public function attachMapper(AbstractMapper $mapper);
-
-    /**
-     * @param AbstractMapper $mapper
-     * @return MapperInterface
-     */
-    public function setParentMapper(AbstractMapper $mapper);
+    public function extract(EntityInterface $object, $map = null);
 }

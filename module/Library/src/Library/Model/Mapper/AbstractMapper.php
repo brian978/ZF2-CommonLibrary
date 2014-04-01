@@ -9,10 +9,8 @@
 
 namespace Library\Model\Mapper;
 
-use Library\Model\Entity\AbstractEntity;
 use Library\Model\Entity\AbstractMappedEntity;
 use Library\Model\Entity\EntityInterface;
-use Library\Model\Mapper\Exception\MapperNotFoundException;
 use Library\Model\Mapper\Exception\WrongDataTypeException;
 use Zend\EventManager\EventManager;
 
@@ -22,39 +20,16 @@ class AbstractMapper implements MapperInterface
     const NOTIFY_BASE_CHANGED = 100;
 
     /**
-     * Class name of the entity that the data will be mapped to
+     * @var MapCollection
+     */
+    protected $mapCollection = null;
+
+    /**
+     * This is sort of a cache to avoid creating new objects each time
      *
-     * @var string
-     */
-    protected $entityClass = '';
-
-    /**
-     * The map that will be used to populate the object
-     *
-     * @see AbstractMapperMap.phps
      * @var array
      */
-    protected $map = array();
-
-    /**
-     * @var array
-     */
-    protected $maps = array();
-
-    /**
-     * @var array
-     */
-    protected $mappers = array();
-
-    /**
-     * @var AbstractMapper
-     */
-    protected $parentMapper = null;
-
-    /**
-     * @var AbstractMapper
-     */
-    protected $baseMapper = null;
+    protected $entityPrototypes = array();
 
     /**
      * The array holds the associations between a method and a property
@@ -69,133 +44,42 @@ class AbstractMapper implements MapperInterface
      */
     protected $eventManager;
 
-    final public function __construct()
-    {
-        $this->convertMap();
-    }
-
-    protected function convertMap()
-    {
-        foreach($this->map as $name => $specs) {
-            $this->addMap(new Map($name, $specs));
-        }
-    }
-
     /**
-     * @param Map $map
-     * @return mixed
+     * @param MapCollection $mapCollection
      */
-    public function addMap(Map $map)
+    public function __construct(MapCollection $mapCollection)
     {
-        $this->maps[$map->getName()] = $map;
-
-        return $this;
+        $this->mapCollection = $mapCollection;
     }
 
     /**
      * @param string $name
-     * @return Map|null
+     * @return array
      */
     public function findMap($name)
     {
-        if(isset($this->maps[$name])) {
-            return $this->maps[$name];
-        }
-
-        return null;
+        return $this->mapCollection->findMap($name);
     }
 
     /**
-     * @param string $name
-     * @return $this
-     */
-    public function removeMap($name)
-    {
-        if(isset($this->maps[$name])) {
-            unset($this->maps[$name]);
-        }
-
-        return $this;
-    }
-
-    /**
-     * @param \Zend\EventManager\EventManager $eventManager
-     * @return AbstractMapper
-     */
-    public function setEventManager($eventManager)
-    {
-        $this->eventManager = $eventManager;
-
-        return $this;
-    }
-
-    /**
-     * @return \Zend\EventManager\EventManager
-     */
-    public function getEventManager()
-    {
-        if (empty($this->eventManager)) {
-            $this->eventManager = new EventManager();
-        }
-
-        return $this->eventManager;
-    }
-
-    /**
-     * @param array $map
-     *
-     * @return AbstractMapper
-     */
-    public function setMap(array $map)
-    {
-        $this->map = $map;
-        $this->convertMap();
-
-        return $this;
-    }
-
-    /**
-     * @return array
-     */
-    public function getMap()
-    {
-        return $this->map;
-    }
-
-    /**
-     * @param string $entityClass
-     *
-     * @return AbstractMapper
-     */
-    public function setEntityClass($entityClass)
-    {
-        $this->entityClass = $entityClass;
-
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getEntityClass()
-    {
-        return $this->entityClass;
-    }
-
-    /**
+     * @param string $className
      * @throws \RuntimeException
-     * @return AbstractEntity|AbstractMappedEntity
+     * @return EntityInterface|AbstractMappedEntity
      */
-    public function createEntityObject()
+    public function createEntityObject($className)
     {
-        if (empty($this->entityClass)) {
-            throw new \RuntimeException('The class for the entity has not been set');
-        }
-
-        /** @var $entity AbstractEntity|AbstractMappedEntity */
-        $entity = new $this->entityClass();
-        if ($entity instanceof AbstractMappedEntity) {
-            $entity->setMapper($this);
+        /** @var $entity EntityInterface */
+        if (!isset($this->entityPrototypes[$className])) {
+            $entity = new $className();
+            if ($entity instanceof EntityInterface) {
+                $this->entityPrototypes[$className] = $entity;
+            } else {
+                throw new \RuntimeException(
+                    'The class for the entity must implement \Library\Model\Entity\EntityInterface'
+                );
+            }
+        } else {
+            $entity = clone $this->entityPrototypes[$className];
         }
 
         return $entity;
@@ -223,81 +107,11 @@ class AbstractMapper implements MapperInterface
     }
 
     /**
-     * The $propertyName are the options for a specific field
-     *
-     * @param $mappingInfo
-     *
-     * @internal param $propertyName
-     * @return bool
-     */
-    protected function useMapper(array $mappingInfo)
-    {
-        $result = false;
-
-        if (isset($mappingInfo['mapper'][1])) {
-            $result = true;
-        }
-
-        return $result;
-    }
-
-    /**
-     * @param array $mappingInfo
-     *
-     * @throws \RuntimeException
-     * @return mixed
-     */
-    protected function getMethodNameFromInfo(array $mappingInfo)
-    {
-        if (!isset($mappingInfo['mapper'][0])) {
-            throw new \RuntimeException('Method name not found in mapper section from the map');
-        }
-
-        return $mappingInfo['mapper'][0];
-    }
-
-    /**
-     * @param array $mappingInfo
-     *
-     * @throws \RuntimeException
-     * @throws Exception\MapperNotFoundException
-     * @return AbstractMapper
-     */
-    protected function getMapperFromInfo(array $mappingInfo)
-    {
-        if (!isset($mappingInfo['mapper'][1])) {
-            throw new \RuntimeException('Mapper class not found in mapper section from the map');
-        }
-
-        $mapperClass = $mappingInfo['mapper'][1];
-
-        if (!isset($this->mappers[$mapperClass])) {
-            throw new MapperNotFoundException('The mapper "' . $mapperClass . '" was not attached.');
-        }
-
-        return $this->mappers[$mapperClass];
-    }
-
-    /**
-     * @param array $mappingInfo
-     * @return Map
-     */
-    protected function getMapFromInfo(array $mappingInfo)
-    {
-        $mapName = '';
-        if (isset($mappingInfo['mapper'][2])) {
-            $mapName = $mappingInfo['mapper'][2];
-        }
-
-        return new Map($mapName);
-    }
-
-    /**
      * @param EntityInterface $object
      * @param string $propertyName
      * @param string $value
      */
-    protected function populateUsingString(EntityInterface $object, $propertyName, $value)
+    protected function setProperty(EntityInterface $object, $propertyName, $value)
     {
         $methodName = $this->createSetterNameFromPropertyName($propertyName);
         if (is_callable(array($object, $methodName))) {
@@ -306,64 +120,12 @@ class AbstractMapper implements MapperInterface
     }
 
     /**
-     * @param EntityInterface $object
-     * @param array $mappingInfo
-     * @param mixed $value This is a single value from the $data array
-     * @param array $data The entire array of data to be populated
-     */
-    protected function populateUsingMapper(EntityInterface $object, array $mappingInfo, $value, array $data = array())
-    {
-        // Creating the method name using the first element in the mapping info array
-        $methodName = $this->createSetterNameFromPropertyName($this->getMethodNameFromInfo($mappingInfo));
-
-        // Populating the information using the mapper given in the mapping info array
-        if (is_callable(array($object, $methodName))) {
-            $mapper         = $this->getMapperFromInfo($mappingInfo);
-            $dataToPopulate = $data;
-            $map            = $this->getMapFromInfo($mappingInfo);
-
-            // When the $value is not an array it probably means that the data
-            // is mixed in a huge array and certain mappers handle certain data
-            if (is_array($value)) {
-
-                // We change the data to be populated to avoid creating another condition
-                $dataToPopulate = $value;
-
-                if (is_array(current($dataToPopulate))) {
-
-                    // Populating the object with the objects created from the arrays
-                    foreach ($dataToPopulate as $newData) {
-                        $object->$methodName($mapper->populate($newData, $map));
-                    }
-
-                    // Resetting the data to we won't populate it one more time
-                    $dataToPopulate = array();
-                }
-            }
-
-            if (!empty($dataToPopulate)) {
-                $object->$methodName($mapper->populate($dataToPopulate, $map));
-            }
-        }
-    }
-
-    /**
-     * @param $map
-     * @return Map
-     */
-    protected function selectMap($map)
-    {
-        return $this->findMap($map instanceof Map ? $map->getName() : ($map == null ? 'default' : $map));
-    }
-
-    /**
      * @param mixed $data
-     * @param null|string|Map $map
+     * @param string $mapName
      * @throws Exception\WrongDataTypeException
-     *
      * @return EntityInterface
      */
-    public function populate($data, $map = null)
+    public function populate($data, $mapName = 'default')
     {
         if (!is_array($data) && $data instanceof \ArrayIterator === false) {
             $message = 'The $data argument must be either an array or an instance of \ArrayIterator';
@@ -372,21 +134,25 @@ class AbstractMapper implements MapperInterface
             throw new WrongDataTypeException($message);
         }
 
-        // Creating the object to use (may throw exception if no entity class is provided)
-        $object = $this->createEntityObject();
+        // Default object value
+        $object = null;
 
         // Selecting the map from the ones available
-        $selectedMap = $this->selectMap($map);
+        $map = $this->findMap($mapName);
 
-        // Populating the object
-        if($selectedMap instanceof Map) {
+        if ($map !== null && isset($map['entity']) && isset($map['specs'])) {
+            // Creating the object to populate
+            $specs  = $map['specs'];
+            $object = $this->createEntityObject($map['entity']);
+
+            // Populating the object
             foreach ($data as $key => $value) {
-                if (isset($selectedMap[$key])) {
-                    $propertyName = $selectedMap[$key];
-                    if (is_string($propertyName)) {
-                        $this->populateUsingString($object, $propertyName, $value);
-                    } elseif (is_array($propertyName) && $this->useMapper($propertyName)) {
-                        $this->populateUsingMapper($object, $propertyName, $value, $data);
+                if (isset($specs[$key])) {
+                    $property = $specs[$key];
+                    if (is_string($property)) {
+                        $this->setProperty($object, $property, $value);
+                    } elseif (is_array($property) && isset($property['toProperty']) && isset($property['map'])) {
+                        $this->setProperty($object, $property['toProperty'], $this->populate($data, $property['map']));
                     }
                 }
             }
@@ -396,39 +162,34 @@ class AbstractMapper implements MapperInterface
     }
 
     /**
-     * @param \Library\Model\Entity\AbstractEntity $object
-     * @param mixed $map Can be either a string or a Map object
+     * @param \Library\Model\Entity\EntityInterface $object
+     * @param string $mapName
      * @return array
      */
-    public function extract(AbstractEntity $object, $map = null)
+    public function extract(EntityInterface $object, $mapName = 'default')
     {
         $result = array();
 
         // Selecting the map from the ones available
-        $selectedMap = $this->selectMap($map);
+        $map = $this->findMap($mapName);
 
         // No need to continue if we have no map
-        if($selectedMap instanceof Map === false) {
+        if ($map === null || !isset($map['specs'])) {
             return $result;
         }
 
         // We need to flip the values and the field names in the map because
         // we need to do the reverse operation of the populate
-        $reversedMap = $selectedMap->flip();
+        $reversedMap = $this->mapCollection->flip($map);
 
         // Extracting the first layer of the results
         $tmpResult = $object->toArray();
 
         // Creating the result
         foreach ($tmpResult as $field => $value) {
-            if ($value instanceof AbstractEntity) {
-                $mapperHandler = $this->findMapperForObject($value);
-                $extracted     = $mapperHandler->extract($value, $map);
-                $result        = array_merge($result, $extracted);
-
-                // Letting the listeners know that we extracted some data using a mapper other than the
-                // one the current one
-                $this->getEventManager()->trigger('data.extracted', $this, array($extracted, $mapperHandler));
+            if ($value instanceof EntityInterface) {
+                $extracted = $this->extract($value, $this->findMapForField($field, $map));
+                $result    = array_merge($result, $extracted);
             } else {
                 // We only need to extract the fields that are in the map
                 // (the populate() method does the exact thing - only sets data that is in the map)
@@ -442,178 +203,18 @@ class AbstractMapper implements MapperInterface
     }
 
     /**
-     * Returns a mapper matching the requested class
-     * IMPORTANT: this feature will not look for a specific instance, just a class name
-     *
-     * @param $mapperClass
-     *
-     * @return AbstractMapper|null
+     * @param string $fieldName
+     * @param array $map
+     * @return string
      */
-    public function getMapper($mapperClass)
+    protected function findMapForField($fieldName, $map)
     {
-        $foundMapper = null;
-
-        if ($this->hasMapper($mapperClass)) {
-            $foundMapper = $this->mappers[$mapperClass];
-        } else {
-            // Asking around in the other mappers for the requested mapper
-            /** @var $mapper \Library\Model\Mapper\AbstractMapper */
-            foreach ($this->mappers as $mapper) {
-                $tmpMapper = $mapper->getMapper($mapperClass);
-                if ($tmpMapper instanceof AbstractMapper) {
-                    $foundMapper = $tmpMapper;
-                    break;
-                }
+        foreach ($map['specs'] as $toSpecs) {
+            if (is_array($toSpecs) && $toSpecs['toProperty'] === $fieldName) {
+                return $toSpecs['map'];
             }
         }
 
-        return $foundMapper;
-    }
-
-    /**
-     * @param $mapperClass
-     *
-     * @return bool
-     */
-    public function hasMapper($mapperClass)
-    {
-        if (isset($this->mappers[$mapperClass])) {
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * The method is used to receive a notification from another mapper
-     *
-     * @param $notificationCode
-     * @param array $params
-     * @return $this
-     */
-    public function notify($notificationCode, array $params = array())
-    {
-        switch ($notificationCode) {
-            case self::NOTIFY_BASE_CHANGED:
-                $this->baseMapper = $params['baseMapper'];
-                break;
-        }
-
-        // Propagating the notification to the other child mappers
-        /** @var $mapper AbstractMapper */
-        foreach ($this->mappers as $mapper) {
-            $mapper->notify($notificationCode, $params);
-        }
-
-        return $this;
-    }
-
-    /**
-     * @param AbstractMapper $mapper
-     *
-     * @throws \RuntimeException
-     * @throws \InvalidArgumentException
-     * @return AbstractMapper
-     */
-    public function attachMapper(AbstractMapper $mapper)
-    {
-        if ($mapper === null) {
-            throw new \InvalidArgumentException('The provided mapper is NULL');
-        }
-
-        if ($mapper->getParentMapper() !== null && $mapper->getParentMapper() !== $this) {
-            throw new \RuntimeException('Cannot attach the mapper because it already has a parent');
-        }
-
-        // Sending a notification to the current base mapper telling it there is a new base mapper
-        if ($mapper->getParentMapper() === null) {
-            $mapper->notify(self::NOTIFY_BASE_CHANGED, array('baseMapper' => $this));
-        }
-
-        $this->mappers[get_class($mapper)] = $mapper->setParentMapper($this);
-
-        return $this;
-    }
-
-    /**
-     * @param AbstractMapper $mapper
-     *
-     * @return MapperInterface
-     */
-    public function setParentMapper(AbstractMapper $mapper)
-    {
-        $this->parentMapper = $mapper;
-
-        return $this;
-    }
-
-    /**
-     * @return \Library\Model\Mapper\AbstractMapper
-     */
-    public function getParentMapper()
-    {
-        return $this->parentMapper;
-    }
-
-    /**
-     * Returns the top most mapper and cascading the response
-     * to make sure that all the mappers know which one is the base
-     *
-     * @return \Library\Model\Mapper\AbstractMapper
-     */
-    public function getBaseMapper()
-    {
-        if ($this->baseMapper === null) {
-            $parentMapper = $this->getParentMapper();
-
-            if ($parentMapper === null) {
-                $this->baseMapper = $this;
-
-                return $this->baseMapper;
-            }
-
-            $this->baseMapper = $parentMapper->getBaseMapper();
-        }
-
-        return $this->baseMapper;
-    }
-
-    /**
-     *
-     * @param AbstractEntity $object
-     * @param string $objectClass
-     * @param bool $firstCall
-     * @return AbstractMapper|null
-     */
-    public function findMapperForObject(AbstractEntity $object, $objectClass = null, $firstCall = true)
-    {
-        if ($objectClass === null) {
-            $objectClass = trim(get_class($object), '\\');
-        }
-
-        if ($firstCall === true) {
-            if (strcasecmp(trim($this->getEntityClass(), '\\'), $objectClass)) {
-                return $this;
-            } else {
-                return $this->getBaseMapper()->findMapperForObject($object, $objectClass, false);
-            }
-        }
-
-        // This section will be first executed by the baseMapper
-        /** @var $mapper AbstractMapper */
-        foreach ($this->mappers as $mapper) {
-
-            // Checking if we have found the mapper
-            if (strcasecmp(trim($mapper->getEntityClass(), '\\'), $objectClass) === 0) {
-                return $mapper;
-            }
-
-            // Searching for the mapper in the other mappers (recursive)
-            if (($handler = $mapper->findMapperForObject($object, $objectClass, false)) !== null) {
-                return $handler;
-            }
-        }
-
-        return null;
+        return '';
     }
 }
