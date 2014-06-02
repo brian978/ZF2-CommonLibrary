@@ -145,15 +145,16 @@ class AbstractMapper implements MapperInterface
                 $reflectionClass      = $reflectionParameters[0]->getClass();
 
                 // Checking if we have to insert a collection into the object's property
-                $collection = null;
+                $collectionPrototype = null;
                 if ($reflectionClass instanceof \ReflectionClass
                     && $reflectionClass->isInstance($this->collectionPrototype)
                 ) {
-                    $collection = $reflectionClass->newInstance();
+                    $collectionPrototype = $reflectionClass->newInstance();
                 }
 
                 // Populating the property accordingly
-                if ($collection !== null) {
+                if ($collectionPrototype !== null) {
+                    $collection = clone $collectionPrototype;
                     $collection->add($value);
                     $object->$methodName($collection);
                 } else {
@@ -161,18 +162,28 @@ class AbstractMapper implements MapperInterface
                 }
 
                 // Caching our info so it's faster next time
-                $callableMethods[$propertyName] = array("method" => $methodName, "collection" => $collection);
+                $callableMethods[$propertyName] = array("method" => $methodName, "collection" => $collectionPrototype);
             } else {
                 // We set this to false so we don't create the setter name again next time
                 $callableMethods[$propertyName] = false;
             }
         } else if ($callableMethods[$propertyName] !== false) {
+            $methodName = $callableMethods[$propertyName]["method"];
+
+            // Getting the collection prototype from cache
+            $collectionPrototype = null;
             if ($callableMethods[$propertyName]["collection"] !== null) {
                 /** @var $collection EntityCollection */
-                $collection = $callableMethods[$propertyName]["collection"];
+                $collectionPrototype = $callableMethods[$propertyName]["collection"];
+            }
+
+            // Populating the property accordingly
+            if ($collectionPrototype !== null) {
+                $collection = clone $collectionPrototype;
                 $collection->add($value);
+                $object->$methodName($collection);
             } else {
-                $object->{$callableMethods[$propertyName]["method"]}($value);
+                $object->$methodName($value);
             }
         }
     }
@@ -197,23 +208,26 @@ class AbstractMapper implements MapperInterface
 
         if ($map !== null && isset($map['entity']) && isset($map['specs'])) {
             // Creating the object to populate
+            $identField  = $map['identField'];
             $specs       = $map['specs'];
             $objectClass = $map['entity'];
-            $object      = $this->createEntityObject($objectClass);
 
-            // Populating the object
-            foreach ($data as $key => $value) {
-                if (isset($specs[$key])) {
-                    $property = $specs[$key];
-                    if (is_string($property)) {
-                        $this->setProperty($objectClass, $object, $property, $value);
-                    } elseif (is_array($property) && isset($property['toProperty']) && isset($property['map'])) {
-                        $this->setProperty(
-                            $objectClass,
-                            $object,
-                            $property['toProperty'],
-                            $this->populate($data, $property['map'])
-                        );
+            if (isset($data[$identField]) && $data[$identField] !== null) {
+                // We don't need to create the object if we can't identify it
+                $object = $this->createEntityObject($objectClass);
+
+                // Populating the object
+                foreach ($data as $key => $value) {
+                    if (isset($specs[$key])) {
+                        $property = $specs[$key];
+                        if (is_string($property)) {
+                            $this->setProperty($objectClass, $object, $property, $value);
+                        } elseif (is_array($property) && isset($property['toProperty']) && isset($property['map'])) {
+                            $childObject = $this->populate($data, $property['map']);
+                            if ($childObject !== null) {
+                                $this->setProperty($objectClass, $object, $property['toProperty'], $childObject);
+                            }
+                        }
                     }
                 }
             }
@@ -247,21 +261,21 @@ class AbstractMapper implements MapperInterface
         foreach ($data as $part) {
             // Locating the main object (if there is one)
             $object = null;
-            if ($map !== null && $collection->count() > 0 && isset($map['identProperty'])) {
+            if ($map !== null && $collection->count() > 0 && isset($map['identField'])) {
                 $object = $this->locateInCollection($collection, $map, $part);
             }
 
             if ($object) {
-                // Locating the next collection
-//                $specs = $map['specs'];
-//                foreach ($specs as $propertyName) {
-//                    if (is_array($propertyName) && isset($propertyName['toProperty']) && isset($propertyName['map'])) {
-//                        $methodName = $this->createGetterNameFromPropertyName($propertyName['toProperty']);
-//                        if ($object->$methodName() instanceof EntityCollection) {
-//                            $this->populateCollection(array($part), $propertyName['map'], $object->$methodName());
-//                        }
-//                    }
-//                }
+                // Locating the collections in the objects to pass the data to them as well
+                $specs = $map['specs'];
+                foreach ($specs as $propertyName) {
+                    if (is_array($propertyName) && isset($propertyName['toProperty']) && isset($propertyName['map'])) {
+                        $methodName = $this->createGetterNameFromPropertyName($propertyName['toProperty']);
+                        if ($object->$methodName() instanceof EntityCollection) {
+                            $this->populateCollection(array($part), $propertyName['map'], $object->$methodName());
+                        }
+                    }
+                }
             } else {
                 $collection->add($this->populate($part, $mapName));
             }
@@ -278,12 +292,14 @@ class AbstractMapper implements MapperInterface
      */
     protected function locateInCollection($collection, $map, $data)
     {
+        $specs = $map['specs'];
+
         // Getting the data that will help us identify the object in the collection
-        $idData = null;
-        if (isset($map['identProperty'])) {
-            $specs = $map['specs'];
+        $idData       = null;
+        $propertyName = "";
+        if (isset($map['identField'])) {
             foreach ($specs as $dataIndex => $propertyName) {
-                if ($map['identProperty'] == $propertyName) {
+                if (is_string($propertyName) && strcmp($map['identField'], $dataIndex) === 0) {
                     $idData = $data[$dataIndex];
                     break;
                 }
@@ -293,7 +309,7 @@ class AbstractMapper implements MapperInterface
         // TODO: optimize this
         // Locating the object in the collection
         if ($idData !== null) {
-            $methodName = $this->createGetterNameFromPropertyName($map['identProperty']);
+            $methodName = $this->createGetterNameFromPropertyName($propertyName);
             foreach ($collection as $object) {
                 if ($object->$methodName() == $idData) {
                     return $object;

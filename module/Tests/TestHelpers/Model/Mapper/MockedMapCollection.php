@@ -41,13 +41,12 @@ class MockedMapCollection extends MapCollection
 
         'collectionDefault' => array(
             'entity' => '\Tests\TestHelpers\Model\Entity\CEntity1',
-            'identProperty' => 'id',
+            'identField' => 'id',
             'specs' => array(
                 'id' => 'id',
                 'name' => 'name',
                 'childId' => array(
                     'toProperty' => 'cEntity2',
-                    'parentIdent' => 'parentFKeyId',
                     'map' => 'collectionJoinCEntity2'
                 ),
             )
@@ -55,14 +54,13 @@ class MockedMapCollection extends MapCollection
 
         'collectionJoinCEntity2' => array(
             'entity' => '\Tests\TestHelpers\Model\Entity\CEntity2',
-            'identProperty' => 'id',
+            'identField' => 'childId',
             'specs' => array(
                 'childId' => 'id',
                 'childName' => 'name',
                 'childTypeId' => 'typeId',
                 'childId2' => array(
                     'toProperty' => 'cEntity3',
-                    'parentIdent' => 'parentFKeyChildId',
                     'map' => 'collectionJoinCEntity3'
                 ),
             )
@@ -70,6 +68,7 @@ class MockedMapCollection extends MapCollection
 
         'collectionJoinCEntity3' => array(
             'entity' => '\Tests\TestHelpers\Model\Entity\CEntity3',
+            'identField' => 'childId2',
             'specs' => array(
                 'childId2' => 'id',
                 'childName2' => 'name'
