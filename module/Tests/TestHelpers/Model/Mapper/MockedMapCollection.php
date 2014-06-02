@@ -47,6 +47,7 @@ class MockedMapCollection extends MapCollection
                 'name' => 'name',
                 'childId' => array(
                     'toProperty' => 'cEntity2',
+                    'parentIdent' => 'parentFKeyId',
                     'map' => 'collectionJoinCEntity2'
                 ),
             )
@@ -61,6 +62,7 @@ class MockedMapCollection extends MapCollection
                 'childTypeId' => 'typeId',
                 'childId2' => array(
                     'toProperty' => 'cEntity3',
+                    'parentIdent' => 'parentFKeyChildId',
                     'map' => 'collectionJoinCEntity3'
                 ),
             )
@@ -68,7 +70,6 @@ class MockedMapCollection extends MapCollection
 
         'collectionJoinCEntity3' => array(
             'entity' => '\Tests\TestHelpers\Model\Entity\CEntity3',
-            'identProperty' => 'id',
             'specs' => array(
                 'childId2' => 'id',
                 'childName2' => 'name'

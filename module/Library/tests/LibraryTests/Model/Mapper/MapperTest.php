@@ -364,10 +364,12 @@ class MapperTest extends AbstractTest
             array(
                 'id' => 1,
                 'name' => 'row 1 table 1',
+
                 'childId' => 2,
                 'childTypeId' => 1,
                 'parentFKeyId' => 1,
                 'childName' => 'row 2 table 2',
+
                 'childId2' => 3,
                 'childName2' => 'row 3 table 3',
                 'parentFKeyChildId' => 2,
@@ -412,7 +414,7 @@ class MapperTest extends AbstractTest
         );
 
         $object    = $mapper->populateCollection($data, 'collectionDefault');
-        $extracted = $mapper->extractCollection($object);
+        $extracted = $mapper->extractCollection($object, 'collectionDefault');
 
         $this->assertEquals($data, $extracted);
     }

@@ -245,8 +245,7 @@ class AbstractMapper implements MapperInterface
         }
 
         foreach ($data as $part) {
-            // TODO: check if this can be done better (not repeated or more optimized)
-            // Searching for an already populated object (if any)
+            // Locating the main object (if there is one)
             $object = null;
             if ($map !== null && $collection->count() > 0 && isset($map['identProperty'])) {
                 $object = $this->locateInCollection($collection, $map, $part);
@@ -254,15 +253,15 @@ class AbstractMapper implements MapperInterface
 
             if ($object) {
                 // Locating the next collection
-                $specs = $map['specs'];
-                foreach ($specs as $propertyName) {
-                    if (is_array($propertyName) && isset($propertyName['toProperty']) && isset($propertyName['map'])) {
-                        $methodName = $this->createGetterNameFromPropertyName($propertyName['toProperty']);
-                        if ($object->$methodName() instanceof EntityCollection) {
-                            $this->populateCollection(array($part), $propertyName['map'], $object->$methodName());
-                        }
-                    }
-                }
+//                $specs = $map['specs'];
+//                foreach ($specs as $propertyName) {
+//                    if (is_array($propertyName) && isset($propertyName['toProperty']) && isset($propertyName['map'])) {
+//                        $methodName = $this->createGetterNameFromPropertyName($propertyName['toProperty']);
+//                        if ($object->$methodName() instanceof EntityCollection) {
+//                            $this->populateCollection(array($part), $propertyName['map'], $object->$methodName());
+//                        }
+//                    }
+//                }
             } else {
                 $collection->add($this->populate($part, $mapName));
             }
@@ -306,28 +305,6 @@ class AbstractMapper implements MapperInterface
     }
 
     /**
-     * @param EntityCollection $collection
-     * @param string $mapName
-     * @return array
-     */
-    public function extractCollection(EntityCollection $collection, $mapName = 'default')
-    {
-        $result = array();
-        foreach ($collection as $object) {
-            $data = $this->extract($object, $mapName);
-//            foreach($data as $field => $fieldValue) {
-//                if($fieldValue instanceof EntityCollection) {
-//                    $this->extractCollection($fieldValue, $this->findMapForField($field, $map));
-//                }
-//            }
-
-            $result[] = $data;
-        }
-
-        return $result;
-    }
-
-    /**
      * @param \Library\Model\Entity\EntityInterface $object
      * @param string $mapName
      * @return array
@@ -363,6 +340,52 @@ class AbstractMapper implements MapperInterface
                     $result[$reversedMap[$field]] = $value;
                 }
             }
+        }
+
+        return $result;
+    }
+
+    /**
+     * The $inlineData is used for recursivity purposes only
+     *
+     * @param EntityCollection $collection
+     * @param string $mapName
+     * @param array $mergeWith
+     * @return array
+     */
+    public function extractCollection(EntityCollection $collection, $mapName = 'default', array $mergeWith = array())
+    {
+        $result = array();
+
+        // Selecting the map from the ones available
+        $map = $this->findMap($mapName);
+
+        // No need to continue if we have no map
+        if ($map === null || !isset($map['specs'])) {
+            return $result;
+        }
+
+        foreach ($collection as $object) {
+            // The object data will contain child object but will ignore collections
+            $objectData = $this->extract($object, $mapName);
+
+            // Locating the potential collections in the current object since what we extracted
+            // will not contain them
+//            foreach ($map['specs'] as $fromField => $toField) {
+//                if (is_array($toField)) {
+//                    $methodName    = $this->createGetterNameFromPropertyName($toField['toProperty']);
+//                    $propertyValue = $object->$methodName();
+//                    if ($propertyValue instanceof EntityCollection) {
+//                        $objectData[$fromField] = $this->extractCollection(
+//                            $propertyValue,
+//                            $toField['map'],
+//                            $objectData
+//                        );
+//                    }
+//                }
+//            }
+
+            $result[] = $objectData;
         }
 
         return $result;
