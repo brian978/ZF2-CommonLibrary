@@ -10,19 +10,22 @@
 namespace Library\Model\Mapper;
 
 use Library\Model\Entity\AbstractMappedEntity;
+use Library\Model\Entity\EntityCollection;
 use Library\Model\Entity\EntityInterface;
 use Library\Model\Mapper\Exception\WrongDataTypeException;
 use Zend\EventManager\EventManager;
 
 class AbstractMapper implements MapperInterface
 {
-    // Notification codes
-    const NOTIFY_BASE_CHANGED = 100;
-
     /**
      * @var MapCollection
      */
     protected $mapCollection = null;
+
+    /**
+     * @var \Library\Model\Entity\EntityCollection
+     */
+    protected $collectionPrototype = null;
 
     /**
      * This is sort of a cache to avoid creating new objects each time
@@ -47,6 +50,9 @@ class AbstractMapper implements MapperInterface
     public function __construct(MapCollection $mapCollection)
     {
         $this->mapCollection = $mapCollection;
+
+        // Initializing the entity collection prototype
+        $this->collectionPrototype = new EntityCollection();
     }
 
     /**
@@ -81,8 +87,8 @@ class AbstractMapper implements MapperInterface
     }
 
     /**
-     * @param string $property
      *
+     * @param string $property
      * @return mixed
      */
     protected function createSetterNameFromPropertyName($property)
@@ -97,10 +103,12 @@ class AbstractMapper implements MapperInterface
     }
 
     /**
+     * Populates a property of an object
+     *
      * @param string $objectClass
      * @param EntityInterface $object
      * @param string $propertyName
-     * @param string $value
+     * @param string|EntityInterface $value
      */
     protected function setProperty($objectClass, EntityInterface $object, $propertyName, $value)
     {
@@ -110,17 +118,46 @@ class AbstractMapper implements MapperInterface
 
         $callableMethods = & $this->callableMethods[$objectClass];
 
-        // Calling the setter
+        // Calling the setter and registering it in the callableMethods property for future use
         if (!isset($callableMethods[$propertyName])) {
             $methodName = $this->createSetterNameFromPropertyName($propertyName);
             if (is_callable(array($object, $methodName))) {
-                $object->$methodName($value);
-                $callableMethods[$propertyName] = $methodName;
+                // We need to determine if we have a hinted parameter (for a collection)
+                $reflection           = new \ReflectionObject($object);
+                $reflectionMethod     = $reflection->getMethod($methodName);
+                $reflectionParameters = $reflectionMethod->getParameters();
+                $reflectionClass      = $reflectionParameters[0]->getClass();
+
+                // Checking if we have to insert a collection into the object's property
+                $collection = null;
+                if ($reflectionClass instanceof \ReflectionClass
+                    && $reflectionClass->isInstance($this->collectionPrototype)
+                ) {
+                    $collection = $reflectionClass->newInstance();
+                }
+
+                // Populating the property accordingly
+                if ($collection !== null) {
+                    $collection->add($value);
+                    $object->$methodName($collection);
+                } else {
+                    $object->$methodName($value);
+                }
+
+                // Caching our info so it's faster next time
+                $callableMethods[$propertyName] = array("method" => $methodName, "collection" => $collection);
             } else {
+                // We set this to false so we don't create the setter name again next time
                 $callableMethods[$propertyName] = false;
             }
         } else if ($callableMethods[$propertyName] !== false) {
-            $object->{$callableMethods[$propertyName]}($value);
+            if ($callableMethods[$propertyName]["collection"] !== null) {
+                /** @var $collection EntityCollection */
+                $collection = $callableMethods[$propertyName]["collection"];
+                $collection->add($value);
+            } else {
+                $object->{$callableMethods[$propertyName]["method"]}($value);
+            }
         }
     }
 
@@ -170,6 +207,90 @@ class AbstractMapper implements MapperInterface
         }
 
         return $object;
+    }
+
+    /**
+     * @param array $data
+     * @param string $mapName
+     * @return EntityCollection
+     * @throws Exception\WrongDataTypeException
+     */
+    public function populateCollection($data, $mapName = "default")
+    {
+        if (!is_array($data) && $data instanceof \ArrayIterator === false) {
+            $message = 'The $data argument must be either an array or an instance of \ArrayIterator';
+            $message .= gettype($data) . ' given';
+
+            throw new WrongDataTypeException($message);
+        }
+
+        $map        = $this->findMap($mapName);
+        $collection = clone $this->collectionPrototype;
+
+        foreach ($data as $part) {
+            // Searching for an already populated object (if any)
+            $object = null;
+            if ($map !== null && $collection->count() > 0 && isset($map['identProperty'])) {
+                $object = $this->locateInCollection($collection, $map, $part);
+            }
+
+            // Populating the object
+            if ($object) {
+                // Populate the other objects in the object
+            } else {
+                $collection->add($this->populate($part, $mapName));
+            }
+        }
+
+        return $collection;
+    }
+
+    /**
+     * @param EntityCollection $collection
+     * @param array $map
+     * @param array $data
+     * @return null|EntityInterface
+     */
+    protected function locateInCollection($collection, $map, $data)
+    {
+        // Getting the data that will help us identify the object in the collection
+        $idData = null;
+        if (isset($map['identProperty'])) {
+            $specs = $map['specs'];
+            foreach ($specs as $dataIndex => $propertyName) {
+                if ($map['identProperty'] == $propertyName) {
+                    $idData = $data[$dataIndex];
+                    break;
+                }
+            }
+        }
+
+        // Locating the object in the collection
+        if ($idData !== null) {
+            $methodName = $this->createSetterNameFromPropertyName($map['identProperty']);
+            foreach ($collection as $object) {
+                if ($object->$methodName() == $idData) {
+                    return $object;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param EntityCollection $collection
+     * @param string $mapName
+     * @return array
+     */
+    public function extractCollection(EntityCollection $collection, $mapName = 'default')
+    {
+        $result = array();
+        foreach ($collection as $object) {
+            $result[] = $this->extract($object, $mapName);
+        }
+
+        return $result;
     }
 
     /**

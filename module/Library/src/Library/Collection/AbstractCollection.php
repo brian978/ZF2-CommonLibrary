@@ -19,6 +19,14 @@ abstract class AbstractCollection implements CollectionInterface
     protected $collection = array();
 
     /**
+     * @return int
+     */
+    public function count()
+    {
+        return count($this->collection);
+    }
+
+    /**
      * Removes all the elements in the collection
      *
      * @return $this

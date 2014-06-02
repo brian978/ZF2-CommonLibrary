@@ -328,4 +328,92 @@ class MapperTest extends AbstractTest
 
         $this->assertEquals($data, $extracted);
     }
+
+    public function testCanMapMultipleArrayToObjects()
+    {
+        $mapper = new MockMapper(new MockedMapCollection());
+        $data   = array(
+            array(
+                'id' => 1,
+                'name' => 'row 1 table 1',
+
+                'childId' => 1,
+                'childTypeId' => 1,
+                'parentFKeyId' => 1,
+                'childName' => 'row 1 table 2',
+
+                'childId2' => 1,
+                'childName2' => 'row 1 table 3',
+                'parentFKeyChildId' => 1,
+                'parentFKeyTypeId' => 1,
+            ),
+            array(
+                'id' => 1,
+                'name' => 'row 1 table 1',
+
+                'childId' => 2,
+                'childTypeId' => 1,
+                'parentFKeyId' => 1,
+                'childName' => 'row 2 table 2',
+
+                'childId2' => 2,
+                'childName2' => 'row 2 table 3',
+                'parentFKeyChildId' => 2,
+                'parentFKeyTypeId' => 1,
+            ),
+            array(
+                'id' => 1,
+                'name' => 'row 1 table 1',
+                'childId' => 2,
+                'childTypeId' => 1,
+                'parentFKeyId' => 1,
+                'childName' => 'row 2 table 2',
+                'childId2' => 3,
+                'childName2' => 'row 3 table 3',
+                'parentFKeyChildId' => 2,
+                'parentFKeyTypeId' => 1,
+            ),
+            array(
+                'id' => 1,
+                'name' => 'row 1 table 1',
+                'childId' => 3,
+                'childTypeId' => 2,
+                'parentFKeyId' => 1,
+                'childName' => 'row 3 table 2',
+                'childId2' => 4,
+                'childName2' => 'row 4 table 3',
+                'parentFKeyChildId' => 3,
+                'parentFKeyTypeId' => 2,
+            ),
+            array(
+                'id' => 2,
+                'name' => 'row 2 table 1',
+                'childId' => 4,
+                'childTypeId' => 1,
+                'parentFKeyId' => 2,
+                'childName' => 'row 4 table 2',
+                'childId2' => 5,
+                'childName2' => 'row 5 table 3',
+                'parentFKeyChildId' => 4,
+                'parentFKeyTypeId' => 1,
+            ),
+            array(
+                'id' => 3,
+                'name' => 'row 3 table 1',
+                'childId' => null,
+                'childTypeId' => null,
+                'parentFKeyId' => null,
+                'childName' => null,
+                'childId2' => null,
+                'childName2' => null,
+                'parentFKeyChildId' => null,
+                'parentFKeyTypeId' => null,
+            )
+        );
+
+        $object    = $mapper->populateCollection($data, 'collectionDefault');
+        $extracted = $mapper->extractCollection($object);
+
+        $this->assertEquals($data, $extracted);
+    }
 }
