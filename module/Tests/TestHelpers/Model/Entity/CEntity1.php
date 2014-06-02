@@ -30,26 +30,6 @@ class CEntity1 extends AbstractEntity
     protected $cEntity2 = null;
 
     /**
-     * @param string $name
-     *
-     * @return CEntity1
-     */
-    public function setName($name)
-    {
-        $this->name = $name;
-
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getName()
-    {
-        return $this->name;
-    }
-
-    /**
      * @param int $id
      *
      * @return CEntity1
@@ -67,6 +47,26 @@ class CEntity1 extends AbstractEntity
     public function getId()
     {
         return $this->id;
+    }
+
+    /**
+     * @param string $name
+     *
+     * @return CEntity1
+     */
+    public function setName($name)
+    {
+        $this->name = $name;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getName()
+    {
+        return $this->name;
     }
 
     /**

@@ -362,14 +362,12 @@ class AbstractMapper implements MapperInterface
     }
 
     /**
-     * The $inlineData is used for recursivity purposes only
      *
      * @param EntityCollection $collection
      * @param string $mapName
-     * @param array $mergeWith
      * @return array
      */
-    public function extractCollection(EntityCollection $collection, $mapName = 'default', array $mergeWith = array())
+    public function extractCollection(EntityCollection $collection, $mapName = 'default')
     {
         $result = array();
 
@@ -382,26 +380,34 @@ class AbstractMapper implements MapperInterface
         }
 
         foreach ($collection as $object) {
+            $collectionData = [];
+
             // The object data will contain child object but will ignore collections
             $objectData = $this->extract($object, $mapName);
 
             // Locating the potential collections in the current object since what we extracted
             // will not contain them
-//            foreach ($map['specs'] as $fromField => $toField) {
-//                if (is_array($toField)) {
-//                    $methodName    = $this->createGetterNameFromPropertyName($toField['toProperty']);
-//                    $propertyValue = $object->$methodName();
-//                    if ($propertyValue instanceof EntityCollection) {
-//                        $objectData[$fromField] = $this->extractCollection(
-//                            $propertyValue,
-//                            $toField['map'],
-//                            $objectData
-//                        );
-//                    }
-//                }
-//            }
+            foreach ($map['specs'] as $toField) {
+                if (is_array($toField)) {
+                    $methodName    = $this->createGetterNameFromPropertyName($toField['toProperty']);
+                    $propertyValue = $object->$methodName();
+                    if ($propertyValue instanceof EntityCollection) {
+                        $collectionData = $this->extractCollection(
+                            $propertyValue,
+                            $toField['map'],
+                            $objectData
+                        );
+                    }
+                }
+            }
 
-            $result[] = $objectData;
+            if(count($collectionData) > 0) {
+                foreach($collectionData as $childObjData) {
+                    $result[] = array_merge($objectData, $childObjData);
+                }
+            } else {
+                $result[] = $objectData;
+            }
         }
 
         return $result;
