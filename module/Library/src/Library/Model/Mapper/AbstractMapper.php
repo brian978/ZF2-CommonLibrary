@@ -163,11 +163,12 @@ class AbstractMapper implements MapperInterface
 
     /**
      * @param mixed $data
-     * @param string $mapName
+     * @param string|array $map
+     * @param \Library\Model\Entity\EntityInterface $object
      * @throws Exception\WrongDataTypeException
      * @return EntityInterface
      */
-    public function populate($data, $mapName = 'default')
+    public function populate($data, $map = 'default', EntityInterface $object = null)
     {
         if (!is_array($data) && $data instanceof \ArrayIterator === false) {
             $message = 'The $data argument must be either an array or an instance of \ArrayIterator';
@@ -176,17 +177,22 @@ class AbstractMapper implements MapperInterface
             throw new WrongDataTypeException($message);
         }
 
-        // Default object value
-        $object = null;
-
         // Selecting the map from the ones available
-        $map = $this->findMap($mapName);
+        if (is_string($map)) {
+            $map = $this->findMap($map);
+        } else if (!is_array($map)) {
+            $map = null;
+        }
 
         if ($map !== null && isset($map['entity']) && isset($map['specs'])) {
             // Creating the object to populate
             $specs       = $map['specs'];
             $objectClass = $map['entity'];
-            $object      = $this->createEntityObject($objectClass);
+
+            // We might get an object to populate
+            if ($object !== null) {
+                $object = $this->createEntityObject($objectClass);
+            }
 
             // Populating the object
             foreach ($data as $key => $value) {
@@ -195,12 +201,20 @@ class AbstractMapper implements MapperInterface
                     if (is_string($property)) {
                         $this->setProperty($objectClass, $object, $property, $value);
                     } elseif (is_array($property) && isset($property['toProperty']) && isset($property['map'])) {
-                        $this->setProperty(
-                            $objectClass,
-                            $object,
-                            $property['toProperty'],
-                            $this->populate($data, $property['map'])
-                        );
+                        // This might be a collection of objects so we need to check that first
+                        if (isset($this->callableMethods[$objectClass][$property['toProperty']])
+                            && $this->callableMethods[$objectClass][$property['toProperty']]['collection'] !== null
+                        ) {
+                            // Locate sub-object and send the population that to it
+                            // (we will most likely need to attach another object to that one)
+                        } else {
+                            $this->setProperty(
+                                $objectClass,
+                                $object,
+                                $property['toProperty'],
+                                $this->populate($data, $property['map'])
+                            );
+                        }
                     }
                 }
             }
@@ -228,6 +242,7 @@ class AbstractMapper implements MapperInterface
         $collection = clone $this->collectionPrototype;
 
         foreach ($data as $part) {
+            // TODO: check if this can be done better (not repeated or more optimized)
             // Searching for an already populated object (if any)
             $object = null;
             if ($map !== null && $collection->count() > 0 && isset($map['identProperty'])) {
@@ -236,9 +251,9 @@ class AbstractMapper implements MapperInterface
 
             // Populating the object
             if ($object) {
-                // Populate the other objects in the object
+                $this->populate($part, $map, $object);
             } else {
-                $collection->add($this->populate($part, $mapName));
+                $collection->add($this->populate($part, $map));
             }
         }
 
@@ -265,6 +280,7 @@ class AbstractMapper implements MapperInterface
             }
         }
 
+        // TODO: optimize this
         // Locating the object in the collection
         if ($idData !== null) {
             $methodName = $this->createSetterNameFromPropertyName($map['identProperty']);
