@@ -208,11 +208,11 @@ class AbstractMapper implements MapperInterface
 
         if ($map !== null && isset($map['entity']) && isset($map['specs'])) {
             // Creating the object to populate
-            $identField  = $map['identField'];
+            $identField  = (isset($map['identField']) ? $map['identField'] : null);
             $specs       = $map['specs'];
             $objectClass = $map['entity'];
 
-            if (isset($data[$identField]) && $data[$identField] !== null) {
+            if ($identField === null || (isset($data[$identField]) && $data[$identField] !== null)) {
                 // We don't need to create the object if we can't identify it
                 $object = $this->createEntityObject($objectClass);
 
