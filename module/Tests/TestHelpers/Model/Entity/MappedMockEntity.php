@@ -14,6 +14,11 @@ use Acamar\Model\Entity\AbstractMappedEntity;
 class MappedMockEntity extends AbstractMappedEntity
 {
     /**
+     * @var int
+     */
+    protected $id = 0;
+
+    /**
      * @var string
      */
     protected $testField1 = '';
@@ -22,6 +27,22 @@ class MappedMockEntity extends AbstractMappedEntity
      * @var string
      */
     protected $testField2 = '';
+
+    /**
+     * @param int $id
+     */
+    public function setId($id)
+    {
+        $this->id = $id;
+    }
+
+    /**
+     * @return int
+     */
+    public function getId()
+    {
+        return $this->id;
+    }
 
     /**
      * @param string $testField1

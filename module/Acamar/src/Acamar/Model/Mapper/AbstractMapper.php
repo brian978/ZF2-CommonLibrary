@@ -207,6 +207,8 @@ class AbstractMapper implements MapperInterface
     }
 
     /**
+     * The method is used to populate a single entity with a set of data
+     *
      * @param array|\ArrayIterator $data
      * @param string|array $map
      * @throws Exception\WrongDataTypeException
@@ -232,26 +234,29 @@ class AbstractMapper implements MapperInterface
             return $object;
         }
 
-        // Creating the object to populate
-        $identField  = (isset($map['identField']) ? $map['identField'] : null);
+        // Using the identification field to determine if we should populate the object or not
+        $identField = (isset($map['identField']) ? $map['identField'] : null);
+        if($identField !== null && count($this->getIdentificationData($map, $data)) == 0) {
+            return $object;
+        }
+
+        // Some data from the map (shortcuts)
         $specs       = $map['specs'];
         $objectClass = $map['entity'];
 
-        if ($identField === null || (isset($data[$identField]) && $data[$identField] !== null)) {
-            // We don't need to create the object if we can't identify it
-            $object = $this->createEntityObject($objectClass);
+        // We don't need to create the object if we can't identify it
+        $object = $this->createEntityObject($objectClass);
 
-            // Populating the object
-            foreach ($data as $key => $value) {
-                if (isset($specs[$key])) {
-                    $property = $specs[$key];
-                    if (is_string($property)) {
-                        $this->setProperty($objectClass, $object, $property, $value);
-                    } elseif (is_array($property) && isset($property['toProperty']) && isset($property['map'])) {
-                        $childObject = $this->populate($data, $property['map']);
-                        if ($childObject !== null) {
-                            $this->setProperty($objectClass, $object, $property['toProperty'], $childObject);
-                        }
+        // Populating the object
+        foreach ($data as $key => $value) {
+            if (isset($specs[$key])) {
+                $property = $specs[$key];
+                if (is_string($property)) {
+                    $this->setProperty($objectClass, $object, $property, $value);
+                } elseif (is_array($property) && isset($property['toProperty']) && isset($property['map'])) {
+                    $childObject = $this->populate($data, $property['map']);
+                    if ($childObject !== null) {
+                        $this->setProperty($objectClass, $object, $property['toProperty'], $childObject);
                     }
                 }
             }
@@ -261,6 +266,8 @@ class AbstractMapper implements MapperInterface
     }
 
     /**
+     * The method is used to map a series of data to multiple entities and store them in a collection
+     *
      * @param array $data
      * @param string|array $map
      * @param EntityCollectionInterface $collection
@@ -285,18 +292,25 @@ class AbstractMapper implements MapperInterface
             $collection = clone $this->getCollectionPrototype();
         }
 
-        if (!is_array($map)) {
+        // We we have no mapping information or a way to identify the created objects then we can't map anything
+        if (!is_array($map)
+            || !isset($map['identField'])
+            || (
+                !is_string($map['identField'])
+                && !is_array($map['identField'])
+            )
+        ) {
             return $collection;
         }
 
         foreach ($data as $part) {
             // Locating the main object (if there is one)
             $object = null;
-            if ($collection->count() > 0 && isset($map['identField'])) {
+            if ($collection->count() > 0) {
                 $object = $this->locateInCollection($collection, $map, $part);
             }
 
-            if ($object) {
+            if ($object !== null) {
                 // Locating the collections in the objects to pass the data to them as well
                 $specs = $map['specs'];
                 foreach ($specs as $propertyName) {
@@ -319,6 +333,8 @@ class AbstractMapper implements MapperInterface
     }
 
     /**
+     * This method is called by the populateCollection() method in order to locate an already existing entity
+     *
      * @param EntityCollectionInterface $collection
      * @param array $map
      * @param array $data
@@ -326,26 +342,31 @@ class AbstractMapper implements MapperInterface
      */
     protected function locateInCollection(EntityCollectionInterface $collection, $map, $data)
     {
-        $specs = $map['specs'];
-
         // Getting the data that will help us identify the object in the collection
-        $idData       = null;
-        $propertyName = "";
-        if (isset($map['identField'])) {
-            foreach ($specs as $dataIndex => $propertyName) {
-                if (is_string($propertyName) && strcmp($map['identField'], $dataIndex) === 0) {
-                    $idData = $data[$dataIndex];
-                    break;
-                }
-            }
-        }
+        $idData = $this->getIdentificationData($map, $data);
 
-        // TODO: optimize this
         // Locating the object in the collection
-        if ($idData !== null) {
-            $methodName = $this->createGetterNameFromPropertyName($propertyName);
+        if (!empty($idData)) {
+            $tmpIdData = $idData;
+            $idData = [];
+
+            // We need to convert the property names in the identification data to method names
+            // We don't call this in the foreach loop below because the call to the createGetterNameFromPropertyName()
+            // method is very expensive in terms of performance
+            foreach ($tmpIdData as $propertyName => $value) {
+                $idData[$this->createGetterNameFromPropertyName($propertyName)] = $value;
+            }
+
             foreach ($collection as $object) {
-                if ($object->$methodName() == $idData) {
+                $matched = true;
+                foreach ($idData as $methodName => $value) {
+                    if ($object->$methodName() != $value) {
+                        $matched = false;
+                    }
+                }
+
+                // All the values of the methods must be matched to consider the object as "found"
+                if ($matched) {
                     return $object;
                 }
             }
@@ -408,7 +429,7 @@ class AbstractMapper implements MapperInterface
         $result = array();
 
         // Selecting the map from the ones available
-        if(is_string($map)) {
+        if (is_string($map)) {
             $map = $this->findMap($map);
         }
 
@@ -465,5 +486,48 @@ class AbstractMapper implements MapperInterface
         }
 
         return '';
+    }
+
+    /**
+     * The method will return an array with the identification data (if all the data was found)
+     * or it will return an empty array if it found only part of the identification data or not at all
+     *
+     * @param array $map
+     * @param array $data
+     * @return array
+     */
+    protected function getIdentificationData($map, $data)
+    {
+        $specs = $map['specs'];
+
+        // Getting the data that will help us identify the object in the collection
+        $idData = [];
+
+        if(is_array($map['identField'])) {
+            foreach ($map['identField'] as $identField) {
+                if (isset($specs[$identField])
+                    && is_string($specs[$identField])
+                    && isset($data[$identField])
+                    && $data[$identField] != null
+                ) {
+                    $idData[$specs[$identField]] = $data[$identField];
+                }
+            }
+        } else if(is_string($map['identField'])) {
+            if (isset($specs[$map['identField']])
+                && is_string($specs[$map['identField']])
+                && isset($data[$map['identField']])
+                && $data[$map['identField']] != null
+            ) {
+                $idData[$specs[$map['identField']]] = $data[$map['identField']];
+            }
+        }
+
+
+        if (count($idData) == count($map['identField'])) {
+            return $idData;
+        }
+
+        return [];
     }
 }

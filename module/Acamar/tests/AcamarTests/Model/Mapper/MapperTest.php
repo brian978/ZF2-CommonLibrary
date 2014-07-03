@@ -430,4 +430,44 @@ class MapperTest extends AbstractTest
 
         $this->assertNotEquals($data, $extracted);
     }
+
+    public function testWillFindObjectByComposedKey()
+    {
+        $mapper = new MockMapper(new MockedMapCollection());
+        $data   = array(
+            array(
+                'someId1' => 1,
+                'someId2' => 2,
+                'fId' => 1,
+                'foreignField' => 'something',
+            ),
+            array(
+                'someId1' => 1,
+                'someId2' => 3,
+                'fId' => 2,
+                'foreignField' => 'something2',
+            ),
+            array(
+                'someId1' => 1,
+                'someId2' => 2,
+                'fId' => 5,
+                'foreignField' => 'something3',
+            ),
+        );
+
+        // Sorting the input array so we can properly compare with the output
+        foreach ($data as &$part) {
+            ksort($part);
+        }
+
+        $object    = $mapper->populateCollection($data, 'collectionJoinComposedEntity1');
+        $extracted = $mapper->extractCollection($object, 'collectionJoinComposedEntity1');
+
+        // Sorting the extracted so it matches the input
+        foreach ($extracted as &$part) {
+            ksort($part);
+        }
+
+        $this->assertNotEquals($data, $extracted);
+    }
 }

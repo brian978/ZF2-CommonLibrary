@@ -38,7 +38,6 @@ class MockedMapCollection extends MapCollection
                 'joinedField2' => 'testField2',
             )
         ),
-
         'collectionDefault' => array(
             'entity' => '\Tests\TestHelpers\Model\Entity\CEntity1',
             'identField' => 'id',
@@ -51,7 +50,6 @@ class MockedMapCollection extends MapCollection
                 ),
             )
         ),
-
         'collectionJoinCEntity2' => array(
             'entity' => '\Tests\TestHelpers\Model\Entity\CEntity2',
             'identField' => 'childId',
@@ -65,13 +63,32 @@ class MockedMapCollection extends MapCollection
                 ),
             )
         ),
-
         'collectionJoinCEntity3' => array(
             'entity' => '\Tests\TestHelpers\Model\Entity\CEntity3',
             'identField' => 'childId2',
             'specs' => array(
                 'childId2' => 'id',
                 'childName2' => 'name'
+            )
+        ),
+        'collectionJoinComposedEntity1' => array(
+            'entity' => '\Tests\TestHelpers\Model\Entity\ComposedEntity1',
+            'identField' => array('someId1', 'someId2'),
+            'specs' => array(
+                'someId1' => 'id1',
+                'someId2' => 'id2',
+                'foreignField' => array(
+                    'toProperty' => 'collectionField',
+                    'map' => 'collectionJoinComposedEntity2'
+                )
+            )
+        ),
+        'collectionJoinComposedEntity2' => array(
+            'entity' => '\Tests\TestHelpers\Model\Entity\ComposedEntity2',
+            'identField' => array('fId'),
+            'specs' => array(
+                'fId' => 'id',
+                'foreignField' => 'field',
             )
         )
     );

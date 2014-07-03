@@ -12,30 +12,6 @@ namespace Acamar\Model\Entity;
 abstract class AbstractEntity implements EntityInterface
 {
     /**
-     * @var int
-     */
-    protected $id = 0;
-
-    /**
-     * @param int $id
-     * @return $this
-     */
-    public function setId($id)
-    {
-        $this->id = (int)$id;
-
-        return $this;
-    }
-
-    /**
-     * @return int
-     */
-    public function getId()
-    {
-        return $this->id;
-    }
-
-    /**
      * The method returns an array of properties that can be accessed via getters
      *
      * @return array
@@ -54,7 +30,9 @@ abstract class AbstractEntity implements EntityInterface
         array_walk(
             $objectMethods,
             function ($value, $index) use ($objectMethods, &$objectProperties) {
-                $methodName = $objectMethods[$index]->getName();
+                /** @var $reflectionMethod \ReflectionMethod */
+                $reflectionMethod = $objectMethods[$index];
+                $methodName = $reflectionMethod->getName();
                 if (strpos($methodName, 'get') === 0) {
                     $objectProperties[lcfirst(substr($methodName, 3))] = $methodName;
                 }
@@ -65,7 +43,7 @@ abstract class AbstractEntity implements EntityInterface
         // Getting the properties of the object
         foreach ($objectProperties as $propertyName => $methodName) {
             if ($propertyName !== 'mapper') {
-                $properties[$propertyName] = $this->$propertyName;
+                $properties[$propertyName] = $this->$methodName();
             }
         }
 
