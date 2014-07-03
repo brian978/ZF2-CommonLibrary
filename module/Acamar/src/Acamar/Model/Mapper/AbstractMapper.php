@@ -150,13 +150,16 @@ class AbstractMapper implements MapperInterface
             $this->callableMethods[$objectClass] = [];
         }
 
-        $callableMethods = & $this->callableMethods[$objectClass];
+        $callableMethods     = & $this->callableMethods[$objectClass];
+        $methodName          = null;
+        $collectionPrototype = null;
 
         // Calling the setter and registering it in the callableMethods property for future use
         if (!isset($callableMethods[$propertyName])) {
             $methodName = $this->createSetterNameFromPropertyName($propertyName);
             if (is_callable(array($object, $methodName))) {
                 // We need to determine if we have a hinted parameter (for a collection)
+                // We only care about the first parameter since that is the only one we use
                 $reflection           = new \ReflectionObject($object);
                 $reflectionMethod     = $reflection->getMethod($methodName);
                 $reflectionParameters = $reflectionMethod->getParameters();
@@ -170,19 +173,14 @@ class AbstractMapper implements MapperInterface
                     $collectionPrototype = $reflectionClass->newInstance();
                 }
 
-                // Populating the property accordingly
-                if ($collectionPrototype !== null) {
-                    $collection = clone $collectionPrototype;
-                    $collection->add($value);
-                    $object->$methodName($collection);
-                } else {
-                    $object->$methodName($value);
-                }
-
                 // Caching our info so it's faster next time
                 $callableMethods[$propertyName] = array("method" => $methodName, "collection" => $collectionPrototype);
             } else {
+                // So we don't call the method we need to reset it to null
+                $methodName = null;
+
                 // We set this to false so we don't create the setter name again next time
+                // since the method will still be uncallable
                 $callableMethods[$propertyName] = false;
             }
         } else if ($callableMethods[$propertyName] !== false) {
@@ -194,8 +192,10 @@ class AbstractMapper implements MapperInterface
                 /** @var $collection EntityCollectionInterface */
                 $collectionPrototype = $callableMethods[$propertyName]["collection"];
             }
+        }
 
-            // Populating the property accordingly
+        // Populating the property accordingly (if we have a method to call for the property)
+        if ($methodName !== null) {
             if ($collectionPrototype !== null) {
                 $collection = clone $collectionPrototype;
                 $collection->add($value);
@@ -236,7 +236,7 @@ class AbstractMapper implements MapperInterface
 
         // Using the identification field to determine if we should populate the object or not
         $identField = (isset($map['identField']) ? $map['identField'] : null);
-        if($identField !== null && count($this->getIdentificationData($map, $data)) == 0) {
+        if ($identField !== null && count($this->getIdentificationData($map, $data)) == 0) {
             return $object;
         }
 
@@ -496,7 +496,7 @@ class AbstractMapper implements MapperInterface
         // Getting the data that will help us identify the object in the collection
         $idData = [];
 
-        if(is_array($map['identField'])) {
+        if (is_array($map['identField'])) {
             foreach ($map['identField'] as $identField) {
                 if (isset($specs[$identField])
                     && is_string($specs[$identField])
@@ -506,7 +506,7 @@ class AbstractMapper implements MapperInterface
                     $idData[$specs[$identField]] = $data[$identField];
                 }
             }
-        } else if(is_string($map['identField'])) {
+        } else if (is_string($map['identField'])) {
             if (isset($specs[$map['identField']])
                 && is_string($specs[$map['identField']])
                 && isset($data[$map['identField']])
@@ -533,7 +533,7 @@ class AbstractMapper implements MapperInterface
     protected function convertIdentificationData(array $data)
     {
         $tmpIdData = $data;
-        $data = [];
+        $data      = [];
 
         // We need to convert the property names in the identification data to method names
         // We don't call this in the foreach loop below because the call to the createGetterNameFromPropertyName()
