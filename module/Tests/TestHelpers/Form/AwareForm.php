@@ -9,7 +9,7 @@
 
 namespace Tests\TestHelpers\Form;
 
-use Library\Form\AbstractForm;
+use Acamar\Form\AbstractForm;
 use Zend\Form\Form;
 use Zend\I18n\Translator\Translator;
 

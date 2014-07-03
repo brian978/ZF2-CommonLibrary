@@ -9,7 +9,7 @@
 
 namespace Tests\TestHelpers\Model\Mapper;
 
-use Library\Model\Mapper\MapCollection;
+use Acamar\Model\Mapper\MapCollection;
 
 class MockedMapCollection extends MapCollection
 {

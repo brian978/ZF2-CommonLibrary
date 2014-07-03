@@ -9,8 +9,8 @@
 
 namespace Tests\TestHelpers\Model\Entity;
 
-use Library\Model\Entity\AbstractEntity;
-use Library\Model\Entity\EntityCollection;
+use Acamar\Model\Entity\AbstractEntity;
+use Acamar\Model\Entity\EntityCollection;
 
 class CEntity1 extends AbstractEntity
 {
@@ -25,7 +25,7 @@ class CEntity1 extends AbstractEntity
     protected $name = "";
 
     /**
-     * @var \Library\Model\Entity\EntityCollection
+     * @var \Acamar\Model\Entity\EntityCollection
      */
     protected $cEntity2 = null;
 
@@ -70,7 +70,7 @@ class CEntity1 extends AbstractEntity
     }
 
     /**
-     * @param \Library\Model\Entity\EntityCollection $cEntity2
+     * @param \Acamar\Model\Entity\EntityCollection $cEntity2
      *
      * @return CEntity1
      */
@@ -82,7 +82,7 @@ class CEntity1 extends AbstractEntity
     }
 
     /**
-     * @return \Library\Model\Entity\EntityCollection
+     * @return \Acamar\Model\Entity\EntityCollection
      */
     public function getCEntity2()
     {

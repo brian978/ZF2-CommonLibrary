@@ -9,7 +9,7 @@
 
 namespace Tests\TestHelpers\Db;
 
-use Library\Model\Db\TableGateway as LibraryTableGateway;
+use Acamar\Model\Db\TableGateway as LibraryTableGateway;
 
 class TableGateway extends LibraryTableGateway
 {

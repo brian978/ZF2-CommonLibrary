@@ -9,7 +9,7 @@
 
 namespace Tests\TestHelpers\Model\Entity;
 
-use Library\Model\Entity\AbstractEntity;
+use Acamar\Model\Entity\AbstractEntity;
 
 class MockEntity extends AbstractEntity
 {

@@ -9,7 +9,7 @@
 
 namespace Tests\TestHelpers\Model\Entity;
 
-use Library\Model\Entity\AbstractMappedEntity;
+use Acamar\Model\Entity\AbstractMappedEntity;
 
 class MappedMockEntity extends AbstractMappedEntity
 {

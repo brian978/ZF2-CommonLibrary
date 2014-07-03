@@ -9,7 +9,7 @@
 
 namespace Tests\TestHelpers\Model\Mapper;
 
-use Library\Model\Mapper\AbstractMapper;
+use Acamar\Model\Mapper\AbstractMapper;
 
 class MockMapper extends AbstractMapper
 {
