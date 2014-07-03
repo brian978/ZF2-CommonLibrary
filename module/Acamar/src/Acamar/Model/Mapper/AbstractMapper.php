@@ -208,11 +208,11 @@ class AbstractMapper implements MapperInterface
 
     /**
      * @param array|\ArrayIterator $data
-     * @param string $mapName
+     * @param string|array $map
      * @throws Exception\WrongDataTypeException
      * @return EntityInterface
      */
-    public function populate($data, $mapName = 'default')
+    public function populate($data, $map = 'default')
     {
         if (!is_array($data) && $data instanceof \ArrayIterator === false) {
             $message = 'The $data argument must be either an array or an instance of \ArrayIterator';
@@ -222,29 +222,35 @@ class AbstractMapper implements MapperInterface
         }
 
         $object = null;
-        $map    = $this->findMap($mapName);
 
-        if ($map !== null && isset($map['entity']) && isset($map['specs'])) {
-            // Creating the object to populate
-            $identField  = (isset($map['identField']) ? $map['identField'] : null);
-            $specs       = $map['specs'];
-            $objectClass = $map['entity'];
+        // Getting the map if it's a string
+        if (is_string($map)) {
+            $map = $this->findMap($map);
+        }
 
-            if ($identField === null || (isset($data[$identField]) && $data[$identField] !== null)) {
-                // We don't need to create the object if we can't identify it
-                $object = $this->createEntityObject($objectClass);
+        if (!is_array($map) || !isset($map['entity']) || !isset($map['specs'])) {
+            return $object;
+        }
 
-                // Populating the object
-                foreach ($data as $key => $value) {
-                    if (isset($specs[$key])) {
-                        $property = $specs[$key];
-                        if (is_string($property)) {
-                            $this->setProperty($objectClass, $object, $property, $value);
-                        } elseif (is_array($property) && isset($property['toProperty']) && isset($property['map'])) {
-                            $childObject = $this->populate($data, $property['map']);
-                            if ($childObject !== null) {
-                                $this->setProperty($objectClass, $object, $property['toProperty'], $childObject);
-                            }
+        // Creating the object to populate
+        $identField  = (isset($map['identField']) ? $map['identField'] : null);
+        $specs       = $map['specs'];
+        $objectClass = $map['entity'];
+
+        if ($identField === null || (isset($data[$identField]) && $data[$identField] !== null)) {
+            // We don't need to create the object if we can't identify it
+            $object = $this->createEntityObject($objectClass);
+
+            // Populating the object
+            foreach ($data as $key => $value) {
+                if (isset($specs[$key])) {
+                    $property = $specs[$key];
+                    if (is_string($property)) {
+                        $this->setProperty($objectClass, $object, $property, $value);
+                    } elseif (is_array($property) && isset($property['toProperty']) && isset($property['map'])) {
+                        $childObject = $this->populate($data, $property['map']);
+                        if ($childObject !== null) {
+                            $this->setProperty($objectClass, $object, $property['toProperty'], $childObject);
                         }
                     }
                 }
@@ -256,12 +262,12 @@ class AbstractMapper implements MapperInterface
 
     /**
      * @param array $data
-     * @param string $mapName
+     * @param string|array $map
      * @param EntityCollectionInterface $collection
      * @return EntityCollectionInterface
      * @throws Exception\WrongDataTypeException
      */
-    public function populateCollection($data, $mapName = "default", EntityCollectionInterface $collection = null)
+    public function populateCollection($data, $map = "default", EntityCollectionInterface $collection = null)
     {
         if (!is_array($data) && $data instanceof \ArrayIterator === false) {
             $message = 'The $data argument must be either an array or an instance of \ArrayIterator';
@@ -270,16 +276,23 @@ class AbstractMapper implements MapperInterface
             throw new WrongDataTypeException($message);
         }
 
-        $map = $this->findMap($mapName);
+        // Getting the map if it's a string
+        if (is_string($map)) {
+            $map = $this->findMap($map);
+        }
 
         if ($collection === null) {
             $collection = clone $this->getCollectionPrototype();
         }
 
+        if (!is_array($map)) {
+            return $collection;
+        }
+
         foreach ($data as $part) {
             // Locating the main object (if there is one)
             $object = null;
-            if ($map !== null && $collection->count() > 0 && isset($map['identField'])) {
+            if ($collection->count() > 0 && isset($map['identField'])) {
                 $object = $this->locateInCollection($collection, $map, $part);
             }
 
@@ -287,7 +300,10 @@ class AbstractMapper implements MapperInterface
                 // Locating the collections in the objects to pass the data to them as well
                 $specs = $map['specs'];
                 foreach ($specs as $propertyName) {
-                    if (is_array($propertyName) && isset($propertyName['toProperty']) && isset($propertyName['map'])) {
+                    if (is_array($propertyName)
+                        && isset($propertyName['toProperty'])
+                        && isset($propertyName['map'])
+                    ) {
                         $methodName = $this->createGetterNameFromPropertyName($propertyName['toProperty']);
                         if ($object->$methodName() instanceof EntityCollectionInterface) {
                             $this->populateCollection(array($part), $propertyName['map'], $object->$methodName());
@@ -295,7 +311,7 @@ class AbstractMapper implements MapperInterface
                     }
                 }
             } else {
-                $collection->add($this->populate($part, $mapName));
+                $collection->add($this->populate($part, $map));
             }
         }
 
@@ -340,18 +356,20 @@ class AbstractMapper implements MapperInterface
 
     /**
      * @param \Acamar\Model\Entity\EntityInterface $object
-     * @param string $mapName
+     * @param string|array $map
      * @return array
      */
-    public function extract(EntityInterface $object, $mapName = 'default')
+    public function extract(EntityInterface $object, $map = 'default')
     {
         $result = array();
 
         // Selecting the map from the ones available
-        $map = $this->findMap($mapName);
+        if (is_string($map)) {
+            $map = $this->findMap($map);
+        }
 
         // No need to continue if we have no map
-        if ($map === null || !isset($map['specs'])) {
+        if (!is_array($map) || !isset($map['specs'])) {
             return $result;
         }
 
@@ -382,18 +400,20 @@ class AbstractMapper implements MapperInterface
     /**
      *
      * @param EntityCollectionInterface $collection
-     * @param string $mapName
+     * @param string|array $map
      * @return array
      */
-    public function extractCollection(EntityCollectionInterface $collection, $mapName = 'default')
+    public function extractCollection(EntityCollectionInterface $collection, $map = 'default')
     {
         $result = array();
 
         // Selecting the map from the ones available
-        $map = $this->findMap($mapName);
+        if(is_string($map)) {
+            $map = $this->findMap($map);
+        }
 
         // No need to continue if we have no map
-        if ($map === null || !isset($map['specs'])) {
+        if (!is_array($map) || !isset($map['specs'])) {
             return $result;
         }
 
@@ -401,7 +421,7 @@ class AbstractMapper implements MapperInterface
             $collectionData = [];
 
             // The object data will contain child object but will ignore collections
-            $objectData = $this->extract($object, $mapName);
+            $objectData = $this->extract($object, $map);
 
             // Locating the potential collections in the current object since what we extracted
             // will not contain them
