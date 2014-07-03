@@ -9,18 +9,13 @@
 
 namespace Library\Model\Entity;
 
-use Library\Collection\AbstractCollection;
+use Library\Collection\CollectionInterface;
 
-class EntityCollection extends AbstractCollection implements EntityCollectionInterface
+interface EntityCollectionInterface extends CollectionInterface
 {
     /**
      * @param EntityInterface $entity
      * @return $this
      */
-    public function add(EntityInterface $entity)
-    {
-        $this->collection[] = $entity;
-
-        return $this;
-    }
+    public function add(EntityInterface $entity);
 }

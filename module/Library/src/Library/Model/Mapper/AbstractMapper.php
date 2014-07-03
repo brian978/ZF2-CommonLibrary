@@ -9,11 +9,10 @@
 
 namespace Library\Model\Mapper;
 
-use Library\Model\Entity\AbstractMappedEntity;
 use Library\Model\Entity\EntityCollection;
+use Library\Model\Entity\EntityCollectionInterface;
 use Library\Model\Entity\EntityInterface;
 use Library\Model\Mapper\Exception\WrongDataTypeException;
-use Zend\EventManager\EventManager;
 
 class AbstractMapper implements MapperInterface
 {
@@ -23,7 +22,7 @@ class AbstractMapper implements MapperInterface
     protected $mapCollection = null;
 
     /**
-     * @var \Library\Model\Entity\EntityCollection
+     * @var \Library\Model\Entity\EntityCollectionInterface
      */
     protected $collectionPrototype = null;
 
@@ -35,14 +34,11 @@ class AbstractMapper implements MapperInterface
     protected $entityPrototypes = array();
 
     /**
+     * The callable methods property acts like a cache for the setProperty() method
+     *
      * @var array
      */
     protected $callableMethods = array();
-
-    /**
-     * @var EventManager
-     */
-    protected $eventManager;
 
     /**
      * @param MapCollection $mapCollection
@@ -50,9 +46,31 @@ class AbstractMapper implements MapperInterface
     public function __construct(MapCollection $mapCollection)
     {
         $this->mapCollection = $mapCollection;
+    }
 
-        // Initializing the entity collection prototype
-        $this->collectionPrototype = new EntityCollection();
+    /**
+     *
+     * @param EntityCollectionInterface $collectionPrototype
+     * @return $this
+     */
+    public function setCollectionPrototype(EntityCollectionInterface $collectionPrototype)
+    {
+        $this->collectionPrototype = $collectionPrototype;
+
+        return $this;
+    }
+
+    /**
+     *
+     * @return EntityCollection
+     */
+    public function getCollectionPrototype()
+    {
+        if ($this->collectionPrototype === null) {
+            $this->collectionPrototype = new EntityCollection();
+        }
+
+        return $this->collectionPrototype;
     }
 
     /**
@@ -67,7 +85,7 @@ class AbstractMapper implements MapperInterface
     /**
      * @param string $className
      * @throws \RuntimeException
-     * @return EntityInterface|AbstractMappedEntity
+     * @return EntityInterface
      */
     public function createEntityObject($className)
     {
@@ -147,7 +165,7 @@ class AbstractMapper implements MapperInterface
                 // Checking if we have to insert a collection into the object's property
                 $collectionPrototype = null;
                 if ($reflectionClass instanceof \ReflectionClass
-                    && $reflectionClass->isInstance($this->collectionPrototype)
+                    && $reflectionClass->isInstance($this->getCollectionPrototype())
                 ) {
                     $collectionPrototype = $reflectionClass->newInstance();
                 }
@@ -173,7 +191,7 @@ class AbstractMapper implements MapperInterface
             // Getting the collection prototype from cache
             $collectionPrototype = null;
             if ($callableMethods[$propertyName]["collection"] !== null) {
-                /** @var $collection EntityCollection */
+                /** @var $collection EntityCollectionInterface */
                 $collectionPrototype = $callableMethods[$propertyName]["collection"];
             }
 
@@ -239,11 +257,11 @@ class AbstractMapper implements MapperInterface
     /**
      * @param array $data
      * @param string $mapName
-     * @param EntityCollection $collection
-     * @return EntityCollection
+     * @param EntityCollectionInterface $collection
+     * @return EntityCollectionInterface
      * @throws Exception\WrongDataTypeException
      */
-    public function populateCollection($data, $mapName = "default", EntityCollection $collection = null)
+    public function populateCollection($data, $mapName = "default", EntityCollectionInterface $collection = null)
     {
         if (!is_array($data) && $data instanceof \ArrayIterator === false) {
             $message = 'The $data argument must be either an array or an instance of \ArrayIterator';
@@ -255,7 +273,7 @@ class AbstractMapper implements MapperInterface
         $map = $this->findMap($mapName);
 
         if ($collection === null) {
-            $collection = clone $this->collectionPrototype;
+            $collection = clone $this->getCollectionPrototype();
         }
 
         foreach ($data as $part) {
@@ -271,7 +289,7 @@ class AbstractMapper implements MapperInterface
                 foreach ($specs as $propertyName) {
                     if (is_array($propertyName) && isset($propertyName['toProperty']) && isset($propertyName['map'])) {
                         $methodName = $this->createGetterNameFromPropertyName($propertyName['toProperty']);
-                        if ($object->$methodName() instanceof EntityCollection) {
+                        if ($object->$methodName() instanceof EntityCollectionInterface) {
                             $this->populateCollection(array($part), $propertyName['map'], $object->$methodName());
                         }
                     }
@@ -285,12 +303,12 @@ class AbstractMapper implements MapperInterface
     }
 
     /**
-     * @param EntityCollection $collection
+     * @param EntityCollectionInterface $collection
      * @param array $map
      * @param array $data
      * @return null|EntityInterface
      */
-    protected function locateInCollection($collection, $map, $data)
+    protected function locateInCollection(EntityCollectionInterface $collection, $map, $data)
     {
         $specs = $map['specs'];
 
@@ -363,11 +381,11 @@ class AbstractMapper implements MapperInterface
 
     /**
      *
-     * @param EntityCollection $collection
+     * @param EntityCollectionInterface $collection
      * @param string $mapName
      * @return array
      */
-    public function extractCollection(EntityCollection $collection, $mapName = 'default')
+    public function extractCollection(EntityCollectionInterface $collection, $mapName = 'default')
     {
         $result = array();
 
@@ -391,7 +409,7 @@ class AbstractMapper implements MapperInterface
                 if (is_array($toField)) {
                     $methodName    = $this->createGetterNameFromPropertyName($toField['toProperty']);
                     $propertyValue = $object->$methodName();
-                    if ($propertyValue instanceof EntityCollection) {
+                    if ($propertyValue instanceof EntityCollectionInterface) {
                         $collectionData = $this->extractCollection(
                             $propertyValue,
                             $toField['map'],
@@ -401,8 +419,8 @@ class AbstractMapper implements MapperInterface
                 }
             }
 
-            if(count($collectionData) > 0) {
-                foreach($collectionData as $childObjData) {
+            if (count($collectionData) > 0) {
+                foreach ($collectionData as $childObjData) {
                     $result[] = array_merge($objectData, $childObjData);
                 }
             } else {
