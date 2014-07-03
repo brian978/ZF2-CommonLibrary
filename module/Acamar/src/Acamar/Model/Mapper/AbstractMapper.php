@@ -212,7 +212,7 @@ class AbstractMapper implements MapperInterface
      * @param array|\ArrayIterator $data
      * @param string|array $map
      * @throws Exception\WrongDataTypeException
-     * @return EntityInterface
+     * @return EntityInterface|null
      */
     public function populate($data, $map = 'default')
     {
@@ -347,16 +347,9 @@ class AbstractMapper implements MapperInterface
 
         // Locating the object in the collection
         if (!empty($idData)) {
-            $tmpIdData = $idData;
-            $idData = [];
+            $idData = $this->convertIdentificationData($idData);
 
-            // We need to convert the property names in the identification data to method names
-            // We don't call this in the foreach loop below because the call to the createGetterNameFromPropertyName()
-            // method is very expensive in terms of performance
-            foreach ($tmpIdData as $propertyName => $value) {
-                $idData[$this->createGetterNameFromPropertyName($propertyName)] = $value;
-            }
-
+            // Locating the object that has the identification data we extracted
             foreach ($collection as $object) {
                 $matched = true;
                 foreach ($idData as $methodName => $value) {
@@ -529,5 +522,26 @@ class AbstractMapper implements MapperInterface
         }
 
         return [];
+    }
+
+    /**
+     * Converts the property names from the identification data to method names
+     *
+     * @param array $data
+     * @return array
+     */
+    protected function convertIdentificationData(array $data)
+    {
+        $tmpIdData = $data;
+        $data = [];
+
+        // We need to convert the property names in the identification data to method names
+        // We don't call this in the foreach loop below because the call to the createGetterNameFromPropertyName()
+        // method is very expensive in terms of performance
+        foreach ($tmpIdData as $propertyName => $value) {
+            $data[$this->createGetterNameFromPropertyName($propertyName)] = $value;
+        }
+
+        return $data;
     }
 }
