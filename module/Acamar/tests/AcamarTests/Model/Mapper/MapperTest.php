@@ -10,12 +10,8 @@
 namespace AcamarTests\Model\Mapper;
 
 use Tests\TestHelpers\AbstractTest;
-use Tests\TestHelpers\Model\Entity\MappedMockEntity;
-use Tests\TestHelpers\Model\Mapper\DefaultMockMapper;
 use Tests\TestHelpers\Model\Mapper\MockedMapCollection;
 use Tests\TestHelpers\Model\Mapper\MockMapper;
-use Tests\TestHelpers\Model\Mapper\MockMapper2;
-use Tests\TestHelpers\Model\Mapper\MockMapper3;
 use Tests\TestHelpers\Traits\AdapterTrait;
 
 class MapperTest extends AbstractTest
@@ -469,5 +465,37 @@ class MapperTest extends AbstractTest
         }
 
         $this->assertNotEquals($data, $extracted);
+    }
+
+    public function testCanMapToArrayProperty()
+    {
+        $mapper = new MockMapper(new MockedMapCollection());
+        $data   = array(
+            array(
+                'id' => 1,
+                'testField1' => 2,
+                'testField2' => 1,
+            ),
+            array(
+                'id' => 1,
+                'testField1' => 2,
+                'testField2' => 2,
+            ),
+        );
+
+        // Sorting the input array so we can properly compare with the output
+        foreach ($data as &$part) {
+            ksort($part);
+        }
+
+        $object    = $mapper->populateCollection($data, 'defaultArray');
+        $extracted = $mapper->extractCollection($object, 'defaultArray');
+
+        // Sorting the extracted so it matches the input
+        foreach ($extracted as &$part) {
+            ksort($part);
+        }
+
+        $this->assertEquals($data, $extracted);
     }
 }

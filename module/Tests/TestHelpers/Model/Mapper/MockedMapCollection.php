@@ -30,6 +30,17 @@ class MockedMapCollection extends MapCollection
                 ),
             )
         ),
+        'defaultArray' => array(
+            'entity' => '\Tests\TestHelpers\Model\Entity\ArrayMockEntity',
+            'identField' => 'id',
+            'specs' => array(
+                'id' => 'id',
+                'testField1' => 'testField1',
+                'testField2' => array(
+                    'toProperty' => 'testField2',
+                )
+            )
+        ),
         'defaultJoin' => array(
             'entity' => '\Tests\TestHelpers\Model\Entity\MappedMockEntity',
             'specs' => array(
