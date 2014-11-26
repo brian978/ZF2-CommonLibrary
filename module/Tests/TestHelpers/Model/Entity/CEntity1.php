@@ -25,6 +25,11 @@ class CEntity1 extends AbstractEntity
     protected $name = "";
 
     /**
+     * @var array
+     */
+    protected $arrValues = [];
+
+    /**
      * @var \Acamar\Model\Entity\EntityCollection
      */
     protected $cEntity2 = null;
@@ -67,6 +72,29 @@ class CEntity1 extends AbstractEntity
     public function getName()
     {
         return $this->name;
+    }
+
+    /**
+     * @param array $arrValues
+     * @return $this
+     */
+    public function setArrValues($arrValues)
+    {
+        if (is_array($arrValues)) {
+            $this->arrValues = $arrValues;
+        } else if (!in_array($arrValues, $this->arrValues)) {
+            $this->arrValues[] = $arrValues;
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getArrValues()
+    {
+        return $this->arrValues;
     }
 
     /**

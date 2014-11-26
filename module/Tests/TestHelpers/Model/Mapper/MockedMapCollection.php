@@ -101,6 +101,21 @@ class MockedMapCollection extends MapCollection
                 'fId' => 'id',
                 'foreignField' => 'field',
             )
-        )
+        ),
+        'collectionArrayDefault' => array(
+            'entity' => '\Tests\TestHelpers\Model\Entity\CEntity1',
+            'identField' => 'id',
+            'specs' => array(
+                'id' => 'id',
+                'name' => 'name',
+                'arrValues' => array(
+                    'toProperty' => 'arrValues',
+                ),
+                'childId' => array(
+                    'toProperty' => 'cEntity2',
+                    'map' => 'collectionJoinCEntity2'
+                ),
+            )
+        ),
     );
 }
