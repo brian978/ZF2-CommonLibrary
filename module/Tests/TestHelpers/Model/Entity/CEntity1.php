@@ -82,7 +82,7 @@ class CEntity1 extends AbstractEntity
     {
         if (is_array($arrValues)) {
             $this->arrValues = $arrValues;
-        } else if (!in_array($arrValues, $this->arrValues)) {
+        } else {
             $this->arrValues[] = $arrValues;
         }
 

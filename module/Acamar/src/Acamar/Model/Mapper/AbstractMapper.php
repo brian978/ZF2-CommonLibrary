@@ -9,7 +9,6 @@
 
 namespace Acamar\Model\Mapper;
 
-use Acamar\Collection\AbstractCollection;
 use Acamar\Model\Entity\EntityCollection;
 use Acamar\Model\Entity\EntityCollectionInterface;
 use Acamar\Model\Entity\EntityInterface;
@@ -258,7 +257,7 @@ class AbstractMapper implements MapperInterface
 
             // Getting the collection prototype from cache
             $collectionPrototype = null;
-            if (!$value instanceof AbstractCollection && $callableMethods[$propertyName]["collection"] !== null) {
+            if (!$value instanceof EntityCollectionInterface && $callableMethods[$propertyName]["collection"] !== null) {
                 /** @var $collection EntityCollectionInterface */
                 $collectionPrototype = $callableMethods[$propertyName]["collection"];
             }
@@ -332,9 +331,14 @@ class AbstractMapper implements MapperInterface
                                 $this->setProperty($objectClass, $object, $property['toProperty'], $childObject);
                             }
                         } else {
-                            $collection = $this->populateCollection(array($data), $property['map']);
-                            if (!empty($collection)) {
-                                $this->setProperty($objectClass, $object, $property['toProperty'], $collection);
+                            $methodName = $this->createGetterNameFromPropertyName($property['toProperty']);
+                            if ($object->$methodName() instanceof EntityCollectionInterface) {
+                                $this->populateCollection(array($data), $property['map'], $object->$methodName());
+                            } else {
+                                $collection = $this->populateCollection(array($data), $property['map']);
+                                if (!empty($collection)) {
+                                    $this->setProperty($objectClass, $object, $property['toProperty'], $collection);
+                                }
                             }
                         }
                     } else {
@@ -530,18 +534,14 @@ class AbstractMapper implements MapperInterface
                     $methodName    = $this->createGetterNameFromPropertyName($toField['toProperty']);
                     $propertyValue = $object->$methodName();
                     if ($propertyValue instanceof EntityCollectionInterface) {
-                        $extractedData = $this->extractCollection(
-                            $propertyValue,
-                            $toField['map'],
-                            $objectData
-                        );
+                        $extractedData = $this->extractCollection($propertyValue, $toField['map']);
 
                         if (empty($collectionData)) {
                             $collectionData = $extractedData;
                         } else {
-                            foreach ($collectionData as &$data) {
-                                foreach ($extractedData as $extracted) {
-                                    $data = array_merge($data, $extracted);
+                            foreach ($collectionData as $idx => &$data) {
+                                if (isset($extractedData[$idx])) {
+                                    $data = array_merge($data, $extractedData[$idx]);
                                 }
                             }
                         }
