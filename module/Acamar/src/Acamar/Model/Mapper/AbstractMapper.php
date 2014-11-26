@@ -41,11 +41,17 @@ class AbstractMapper implements MapperInterface
     protected $callableMethods = array();
 
     /**
+     * @var \SplObjectStorage
+     */
+    protected $objectClasses = null;
+
+    /**
      * @param MapCollection $mapCollection
      */
     public function __construct(MapCollection $mapCollection)
     {
         $this->mapCollection = $mapCollection;
+        $this->objectClasses = new \SplObjectStorage();
     }
 
     /**
@@ -137,6 +143,91 @@ class AbstractMapper implements MapperInterface
     }
 
     /**
+     * Returns all the data we have about an objects' methods
+     *
+     * @param EntityInterface $object
+     * @return array
+     */
+    protected function & getObjectMethodsData(EntityInterface $object)
+    {
+        try {
+            $objectClass = $this->objectClasses->offsetGet($object);
+        } catch (\UnexpectedValueException $e) {
+            $objectClass = get_class($object);
+            $this->objectClasses->attach($object, $objectClass);
+        }
+
+        if (!isset($this->callableMethods[$objectClass])) {
+            $this->callableMethods[$objectClass] = [];
+        }
+
+        return $this->callableMethods[$objectClass];
+    }
+
+    /**
+     * Checks if the property of a given object is a collection or not
+     *
+     * @param EntityInterface $object
+     * @param string $propertyName
+     * @return bool
+     */
+    protected function isCollection(EntityInterface $object, $propertyName)
+    {
+        // Calling the setter and registering it in the callableMethods property for future use
+        $callableMethods = $this->getObjectMethodsData($object);
+        if (!isset($callableMethods[$propertyName])) {
+            $this->extractMethodData($callableMethods, $object, $propertyName);
+        }
+
+        if (is_array($callableMethods[$propertyName])) {
+            return null !== $callableMethods[$propertyName]['collection'];
+        }
+
+        return false;
+    }
+
+    /**
+     * Stores different information about a callable/uncallable method
+     *
+     * @param array $callableMethods
+     * @param EntityInterface $object
+     * @param string $propertyName
+     * @return $this
+     */
+    protected function extractMethodData(array & $callableMethods, EntityInterface $object, $propertyName)
+    {
+        $methodName = $this->createSetterNameFromPropertyName($propertyName);
+        if (is_callable(array($object, $methodName))) {
+            // We need to determine if we have a hinted parameter (for a collection)
+            // We also only care about the first parameter since that is the only one we use
+            $reflection           = new \ReflectionObject($object);
+            $reflectionMethod     = $reflection->getMethod($methodName);
+            $reflectionParameters = $reflectionMethod->getParameters();
+            $reflectionClass      = $reflectionParameters[0]->getClass();
+
+            // Checking if we have to insert a collection into the object's property
+            $collectionPrototype = null;
+            if ($reflectionClass instanceof \ReflectionClass
+                && $reflectionClass->isInstance($this->getCollectionPrototype())
+            ) {
+                $collectionPrototype = $reflectionClass->newInstance();
+            }
+
+            // Caching our info so it's faster next time
+            $callableMethods[$propertyName] = array("method" => $methodName, "collection" => $collectionPrototype);
+        } else {
+            // So we don't call the method we need to reset it to null
+            $methodName = null;
+
+            // We set this to false so we don't create the setter name again next time
+            // since the method will still be uncallable
+            $callableMethods[$propertyName] = false;
+        }
+
+        return $this;
+    }
+
+    /**
      * Populates a property of an object
      *
      * @param string $objectClass
@@ -154,36 +245,14 @@ class AbstractMapper implements MapperInterface
         $methodName          = null;
         $collectionPrototype = null;
 
-        // Calling the setter and registering it in the callableMethods property for future use
+        // Making sure we have information about the callable method
+        $callableMethods = $this->getObjectMethodsData($object);
         if (!isset($callableMethods[$propertyName])) {
-            $methodName = $this->createSetterNameFromPropertyName($propertyName);
-            if (is_callable(array($object, $methodName))) {
-                // We need to determine if we have a hinted parameter (for a collection)
-                // We only care about the first parameter since that is the only one we use
-                $reflection           = new \ReflectionObject($object);
-                $reflectionMethod     = $reflection->getMethod($methodName);
-                $reflectionParameters = $reflectionMethod->getParameters();
-                $reflectionClass      = $reflectionParameters[0]->getClass();
+            $this->extractMethodData($callableMethods, $object, $propertyName);
+        }
 
-                // Checking if we have to insert a collection into the object's property
-                $collectionPrototype = null;
-                if ($reflectionClass instanceof \ReflectionClass
-                    && $reflectionClass->isInstance($this->getCollectionPrototype())
-                ) {
-                    $collectionPrototype = $reflectionClass->newInstance();
-                }
-
-                // Caching our info so it's faster next time
-                $callableMethods[$propertyName] = array("method" => $methodName, "collection" => $collectionPrototype);
-            } else {
-                // So we don't call the method we need to reset it to null
-                $methodName = null;
-
-                // We set this to false so we don't create the setter name again next time
-                // since the method will still be uncallable
-                $callableMethods[$propertyName] = false;
-            }
-        } else if ($callableMethods[$propertyName] !== false) {
+        // Now we can get what data we need from the $callableMethods array to populate the property
+        if ($callableMethods[$propertyName] !== false) {
             $methodName = $callableMethods[$propertyName]["method"];
 
             // Getting the collection prototype from cache
@@ -450,13 +519,23 @@ class AbstractMapper implements MapperInterface
                     $methodName    = $this->createGetterNameFromPropertyName($toField['toProperty']);
                     $propertyValue = $object->$methodName();
                     if ($propertyValue instanceof EntityCollectionInterface) {
-                        $collectionData = $this->extractCollection(
+                        $extractedData = $this->extractCollection(
                             $propertyValue,
                             $toField['map'],
                             $objectData
                         );
+
+                        if (empty($collectionData)) {
+                            $collectionData = $extractedData;
+                        } else {
+                            foreach ($collectionData as &$data) {
+                                foreach ($extractedData as $extracted) {
+                                    $data = array_merge($data, $extracted);
+                                }
+                            }
+                        }
                     } elseif (is_array($propertyValue)) {
-                        foreach($propertyValue as $value) {
+                        foreach ($propertyValue as $value) {
                             $collectionData[] = array($toField['toProperty'] => $value);
                         }
                     }
